@@ -3,12 +3,12 @@ using UnityEngine;
 
 public class MapManager : MonoBehaviour
 {
-    [SerializeField] Vector2Int mapSize;
+    [SerializeField] Vector3Int mapSize;
     [SerializeField] int unityMapSize;
     public int UnityMapSize {get {return unityMapSize; } }
 
-    Dictionary<Vector2Int, Node> gridMap = new Dictionary<Vector2Int, Node>();
-    public Dictionary<Vector2Int, Node> GridMap {get {return gridMap; } } 
+    Dictionary<Vector3Int, Node> gridMap = new Dictionary<Vector3Int, Node>();
+    public Dictionary<Vector3Int, Node> GridMap {get {return gridMap; } } 
 
     void Awake()
     {
@@ -16,8 +16,11 @@ public class MapManager : MonoBehaviour
         {
             for (int y = 0; y < mapSize.y; y++)
             {
-                Vector2Int thisCords = new Vector2Int(x, y);
-                gridMap.Add(thisCords, new Node(thisCords));
+                for (int z = 0; z < mapSize.z; z++)
+                {
+                    Vector3Int thisCords = new Vector3Int(x, y, z);
+                    gridMap.Add(thisCords, new Node(thisCords));
+                }
             }
         }
     }

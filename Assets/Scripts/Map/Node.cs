@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class Node
 {
-    public Vector2Int cords;
+    public Vector3Int cords;
 
-    public Node (Vector2Int cords)
+    public Node (Vector3Int cords)
     {
         this.cords = cords;
     }

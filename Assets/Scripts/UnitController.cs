@@ -18,6 +18,11 @@ public class UnitController : MonoBehaviour
 
     void Update()
     {
+        UnitMovementHandler();
+    }
+    
+    void UnitMovementHandler()
+    {
         if (selectAction.action.WasPerformedThisFrame())
         {
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
@@ -31,22 +36,21 @@ public class UnitController : MonoBehaviour
                 {
                     if (unitSelected)
                     {
-                        Vector2Int startCords = new Vector2Int((int)selectedUnit.position.x, (int)selectedUnit.position.y) / mapManager.UnityMapSize;
-                        Vector2Int targetCords = hit.transform.GetComponent<Labeler>().Cords;
+                        Vector3Int startCords = new Vector3Int((int)selectedUnit.position.x, (int)selectedUnit.position.y, (int)selectedUnit.position.z) / mapManager.UnityMapSize;
+                        Vector3Int targetCords = hit.transform.GetComponent<Labeler>().Cords;
 
-                        selectedUnit.transform.position = new Vector3(targetCords.x, selectedUnit.position.y, targetCords.y);
+                        selectedUnit.transform.position = new Vector3(targetCords.x, targetCords.y + 1, targetCords.z);
 
                         unitSelected = false;
                     }
                 }
 
                 if (hit.transform.tag == "Unit")
-                { 
+                {
                     selectedUnit = hit.transform;
                     unitSelected = true;
                 }
-            }  
+            }
         }
-        
     }
 }
