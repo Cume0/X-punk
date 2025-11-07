@@ -19,7 +19,7 @@ public class MapManager : MonoBehaviour
                 for (int z = 0; z < mapSize.z; z++)
                 {
                     Vector3Int thisCords = new Vector3Int(x, y, z);
-                    gridMap.Add(thisCords, new Node(thisCords));
+                    gridMap.Add(thisCords, new Node(thisCords, false));
                 }
             }
         }

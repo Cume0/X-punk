@@ -2,10 +2,17 @@ using UnityEngine;
 
 public class Node
 {
-    public Vector3Int cords;
+    public Vector3Int Cords;
+    public int G; //Distance to startPoint
+    public int H; //Distance to endPoint
 
-    public Node (Vector3Int cords)
+    public int F { get { return G + H; } }
+    
+    public bool Blocked;
+
+    public Node (Vector3Int cords, bool blocked)
     {
-        this.cords = cords;
+        this.Cords = cords;
+        this.Blocked = blocked;
     }
 }

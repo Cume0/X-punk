@@ -39,7 +39,7 @@ public class UnitController : MonoBehaviour
                         Vector3Int startCords = new Vector3Int((int)selectedUnit.position.x, (int)selectedUnit.position.y, (int)selectedUnit.position.z) / mapManager.UnityMapSize;
                         Vector3Int targetCords = hit.transform.GetComponent<Labeler>().Cords;
 
-                        selectedUnit.transform.position = new Vector3(targetCords.x, targetCords.y + 1, targetCords.z);
+                        selectedUnit.transform.position = new Vector3(targetCords.x, targetCords.y + 0.5f, targetCords.z);
 
                         unitSelected = false;
                     }
