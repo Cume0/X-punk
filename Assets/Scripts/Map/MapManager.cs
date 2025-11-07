@@ -8,7 +8,7 @@ public class MapManager : MonoBehaviour
     public int UnityMapSize {get {return unityMapSize; } }
 
     Dictionary<Vector3Int, Node> gridMap = new Dictionary<Vector3Int, Node>();
-    public Dictionary<Vector3Int, Node> GridMap {get {return gridMap; } } 
+    public Dictionary<Vector3Int, Node> GridMap {get {return gridMap; } }
 
     void Awake()
     {
@@ -22,6 +22,24 @@ public class MapManager : MonoBehaviour
                     gridMap.Add(thisCords, new Node(thisCords, false));
                 }
             }
+        }
+    }
+    
+    public Node GetNode(Vector3Int cords)
+    {
+        if (gridMap.ContainsKey(cords))
+        {
+            return gridMap[cords];
+        }
+
+        return null;
+    }
+
+    public void BlockNode(Vector3Int cords)
+    {
+        if (gridMap.ContainsKey(cords))
+        {
+            gridMap[cords].Blocked = true;
         }
     }
 }

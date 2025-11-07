@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 1637741564826464025}
   - component: {fileID: 4434971717160157215}
   - component: {fileID: 3270775258178549363}
+  - component: {fileID: 3676229304269696977}
   m_Layer: 0
   m_Name: Pawn
   m_TagString: Unit
@@ -191,4 +192,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnitController
   moveSpeed: 3
+  jumpHight: 1
   selectAction: {fileID: 3001919216989983466, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+--- !u!114 &3676229304269696977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9160276902724688871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f78d92ad8be7d64ebd9c57b9ed2bddc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pathfinding

@@ -7,7 +7,9 @@ public class Node
     public int H; //Distance to endPoint
 
     public int F { get { return G + H; } }
-    
+
+    public Node previous;
+
     public bool Blocked;
 
     public Node (Vector3Int cords, bool blocked)
