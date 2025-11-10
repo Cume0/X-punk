@@ -1,105 +1,147 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Pathfinding : MonoBehaviour
 {
     MapManager mapManager;
     UnitController unitController;
-    Dictionary<Vector3Int, Node> gridMap = new Dictionary<Vector3Int, Node>();
+    Dictionary<Vector3Int, Node> gridMap;
+    private static readonly Vector3Int[] directions =
+    {
+        new Vector3Int(1,0,0),
+        new Vector3Int(-1,0,0),
+        new Vector3Int(0,0,1),
+        new Vector3Int(0,0,-1),
+        new Vector3Int(1,0,1),
+        new Vector3Int(1,0,-1),
+        new Vector3Int(-1,0,1),
+        new Vector3Int(-1,0,-1),
+    };
 
-    Vector3Int[] searchOrder = {Vector3Int.right, Vector3Int.left, Vector3Int.forward, Vector3Int.back, Vector3Int.up, Vector3Int.down};
     void Start()
     {
         mapManager = FindAnyObjectByType<MapManager>();
-        if (mapManager == null) return;
-
-        gridMap = mapManager.GridMap;
-
         unitController = GetComponent<UnitController>();
+        gridMap = mapManager.GridMap;
     }
-    
+
     public List<Node> FindPath(Node startNode, Node endNode)
     {
-        List<Node> toCheckList = new List<Node>();
-        List<Node> checkedList = new List<Node>();
-
-        toCheckList.Add(startNode);
-
-        while (toCheckList.Count > 0)
+        foreach (var tile in gridMap.Values)
         {
-            Node thisNode = toCheckList.OrderBy(x => x.F).First();
+            tile.G = 0; tile.H = 0; tile.previous = null;
+        }
 
-            toCheckList.Remove(thisNode);
-            checkedList.Add(thisNode);
+        List<Node> openList = new List<Node>(); //tiles to check
+        HashSet<Node> closedList = new HashSet<Node>(); //cheked tiles
 
-            if (thisNode == endNode)
+        openList.Add(startNode);
+
+        while (openList.Count > 0)
+        {
+            var currentNode = openList.OrderBy(n => n.F).First();
+
+            if (currentNode == endNode)
+                return BuildPath(endNode);
+
+            openList.Remove(currentNode);
+            closedList.Add(currentNode);
+
+            foreach (var neighbor in GetNeighbors(currentNode))
             {
-                return BuildPath(startNode, endNode);
-            }
-
-            var neighbourNodes = GetNeighbourNodes(thisNode);
-
-            foreach (var neighbourNode in neighbourNodes)
-            {
-                if (neighbourNode.Blocked == true || checkedList.Contains(neighbourNode) || MathF.Abs(thisNode.Cords.z - neighbourNode.Cords.z) > unitController.jumpHight)
-                {
+                if (neighbor.Blocked || closedList.Contains(neighbor))
                     continue;
-                }
 
-                neighbourNode.G = GetManhattanDistance(startNode, neighbourNode);
-                neighbourNode.H = GetManhattanDistance(endNode, neighbourNode);
+                
+                if (Mathf.Abs(currentNode.Cords.y - neighbor.Cords.y) > unitController.jumpHight)
+                    continue;
 
-                neighbourNode.previous = thisNode;
+                if (!CanMoveDiagonal(currentNode, neighbor))
+                    continue;
 
-                if (!toCheckList.Contains(neighbourNode))
+                int cost = GetMoveCost(currentNode, neighbor);
+                int tentativeG = currentNode.G + cost;
+
+                if (!openList.Contains(neighbor) || tentativeG < neighbor.G)
                 {
-                    toCheckList.Add(neighbourNode);
+                    neighbor.G = tentativeG;
+                    neighbor.H = Heuristic(neighbor.Cords, endNode.Cords);
+                    neighbor.previous = currentNode;
+
+                    if (!openList.Contains(neighbor))
+                        openList.Add(neighbor);
                 }
             }
         }
 
-        return new List<Node>();
+        return new List<Node>(); // путь не найден
     }
 
-    public List<Node> GetNeighbourNodes(Node thisNode)
+    List<Node> GetNeighbors(Node node)
     {
-        List<Node> neighbors = new List<Node>();
-
-        foreach (Vector3Int direction in searchOrder)
+        List<Node> result = new List<Node>();
+        foreach (var dir in directions)
         {
-            Vector3Int neighborCords = thisNode.Cords + direction;
+            Vector3Int check = node.Cords + dir;
+            if (gridMap.ContainsKey(check))
+                result.Add(gridMap[check]);
+        }
+        return result;
+    }
 
-            if (gridMap.ContainsKey(neighborCords))
-            {
-                neighbors.Add(gridMap[neighborCords]);
-            }
+    bool CanMoveDiagonal(Node current, Node neighbor)
+    {
+        int dx = neighbor.Cords.x - current.Cords.x;
+        int dz = neighbor.Cords.z - current.Cords.z;
+
+        if (dx == 0 || dz == 0) return true; 
+
+        Vector3Int stepX = new Vector3Int(current.Cords.x + dx, current.Cords.y, current.Cords.z);
+        Vector3Int stepZ = new Vector3Int(current.Cords.x, current.Cords.y, current.Cords.z + dz);
+
+        return gridMap.ContainsKey(stepX) && !gridMap[stepX].Blocked &&
+               gridMap.ContainsKey(stepZ) && !gridMap[stepZ].Blocked;
+    }
+
+    int GetMoveCost(Node from, Node to)
+{
+    int baseCost;
+
+    // Если шаг диагональный
+    if (from.Cords.x != to.Cords.x && from.Cords.z != to.Cords.z)
+        baseCost = 14; // √2 * 10 округлённо
+    else
+        baseCost = 10;
+
+    // Добавляем стоимость изменения высоты
+    int heightDiff = Mathf.Abs(from.Cords.y - to.Cords.y);
+    // По вкусу: 3-6 нормально. 5 — золотая середина.
+    baseCost += heightDiff * 5;
+
+    return baseCost;
+}
+
+
+    int Heuristic(Vector3Int a, Vector3Int b)
+    {
+        int dx = Mathf.Abs(a.x - b.x);
+        int dz = Mathf.Abs(a.z - b.z);
+        return 10 * Mathf.Max(dx, dz);
+    }
+
+    List<Node> BuildPath(Node endNode)
+    {
+        List<Node> path = new List<Node>();
+        Node curr = endNode;
+
+        while (curr != null)
+        {
+            path.Add(curr);
+            curr = curr.previous;
         }
 
-        return neighbors;
+        path.Reverse();
+        return path;
     }
-
-    private List<Node> BuildPath(Node startNode, Node endNode)
-    {
-        List<Node> Path = new List<Node>();
-
-        Node currentNode = endNode;
-
-        while (currentNode != startNode)
-        {
-            Path.Add(currentNode);
-            currentNode = currentNode.previous;
-        }
-
-        Path.Reverse();
-
-        return Path;
-    }
-    
-    public int GetManhattanDistance(Node Start, Node Neighbour)
-    {
-        return (int)(MathF.Abs(Start.Cords.x - Neighbour.Cords.x) + MathF.Abs(Start.Cords.y - Neighbour.Cords.y) + MathF.Abs(Start.Cords.z - Neighbour.Cords.z));
-    }
-}   
+}

@@ -50,8 +50,10 @@ public class UnitController : MonoBehaviour
                 {
                     if (unitSelected)
                     {
-                        Vector3Int startCords = new Vector3Int((int)selectedUnit.position.x, (int)selectedUnit.position.y, (int)selectedUnit.position.z) / mapManager.UnityMapSize;
+                        Vector3 pos = selectedUnit.position / mapManager.UnityMapSize;
+                        Vector3Int startCords = Vector3Int.RoundToInt(pos);
                         Node startNode = mapManager.GetNode(startCords);
+
                         Vector3Int targetCords = hit.transform.GetComponent<Labeler>().Cords;
                         Node endNode = mapManager.GetNode(targetCords);
 
@@ -72,9 +74,15 @@ public class UnitController : MonoBehaviour
 
     private void MoveAlongPath()
     {
-        GetComponent<Transform>().position = Vector3.MoveTowards(transform.position, path[0].Cords, moveSpeed * Time.deltaTime);
+        Vector3 targetPos = new Vector3(
+        path[0].Cords.x * mapManager.UnityMapSize,
+        path[0].Cords.y * mapManager.UnityMapSize,
+        path[0].Cords.z * mapManager.UnityMapSize
+        );
 
-        if (Vector3.Distance(transform.position, path[0].Cords) < 0.01f)
+        transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
+
+        if (Vector3.Distance(transform.position, targetPos) < 0.01f)
         {
             path.RemoveAt(0);
         }

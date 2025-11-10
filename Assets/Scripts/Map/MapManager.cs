@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class MapManager : MonoBehaviour
 {
-    [SerializeField] Vector3Int mapSize;
     [SerializeField] int unityMapSize;
     public int UnityMapSize {get {return unityMapSize; } }
 
@@ -12,16 +11,13 @@ public class MapManager : MonoBehaviour
 
     void Awake()
     {
-        for (int x = 0; x < mapSize.x; x++)
+        for (int tileIndex = 0; tileIndex < transform.childCount; tileIndex++)
         {
-            for (int y = 0; y < mapSize.y; y++)
-            {
-                for (int z = 0; z < mapSize.z; z++)
-                {
-                    Vector3Int thisCords = new Vector3Int(x, y, z);
-                    gridMap.Add(thisCords, new Node(thisCords, false));
-                }
-            }
+            Vector3 gridPos = transform.GetChild(tileIndex).transform.position;
+
+            Vector3Int gridPosInt = new Vector3Int((int)gridPos.x, (int)gridPos.y, (int)gridPos.z);
+
+            gridMap[gridPosInt] = new Node(gridPosInt, transform.GetChild(tileIndex).gameObject.GetComponent<Tile>().blockNode);
         }
     }
     
@@ -33,13 +29,5 @@ public class MapManager : MonoBehaviour
         }
 
         return null;
-    }
-
-    public void BlockNode(Vector3Int cords)
-    {
-        if (gridMap.ContainsKey(cords))
-        {
-            gridMap[cords].Blocked = true;
-        }
     }
 }
