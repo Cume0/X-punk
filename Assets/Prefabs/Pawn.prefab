@@ -131,8 +131,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1637741564826464025}
   - component: {fileID: 4434971717160157215}
-  - component: {fileID: 3270775258178549363}
-  - component: {fileID: 3676229304269696977}
+  - component: {fileID: 4965876811425090370}
+  - component: {fileID: 4958670450593323665}
   m_Layer: 0
   m_Name: Pawn
   m_TagString: Unit
@@ -179,7 +179,7 @@ CapsuleCollider:
   m_Height: 1.45
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3270775258178549363
+--- !u!114 &4965876811425090370
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -188,13 +188,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 9160276902724688871}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9c13aa77eda60d4ea802be3c9711841, type: 3}
+  m_Script: {fileID: 11500000, guid: fb7fee77c1d7f30458c3ce34b740967b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UnitController
+  m_EditorClassIdentifier: Assembly-CSharp::PlaceHolder
+  id: 0
+  pawnName: 
   moveSpeed: 3
-  jumpHight: 1
-  selectAction: {fileID: 3001919216989983466, guid: 052faaac586de48259a63d0c4782560b, type: 3}
---- !u!114 &3676229304269696977
+  movePoints: 0
+--- !u!114 &4958670450593323665
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -203,6 +204,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 9160276902724688871}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f78d92ad8be7d64ebd9c57b9ed2bddc, type: 3}
+  m_Script: {fileID: 11500000, guid: fc1ae366eef3cf84cb9ddc63d9c8de84, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Pathfinding
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerPawnScript

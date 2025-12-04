@@ -9,7 +9,7 @@ public class MapManager : MonoBehaviour
     Dictionary<Vector3Int, Node> gridMap = new Dictionary<Vector3Int, Node>();
     public Dictionary<Vector3Int, Node> GridMap {get {return gridMap; } }
 
-    void Awake()
+    void Start()
     {
         for (int tileIndex = 0; tileIndex < transform.childCount; tileIndex++)
         {

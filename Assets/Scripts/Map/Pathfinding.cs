@@ -17,6 +17,8 @@ public class Pathfinding : MonoBehaviour
         new Vector3Int(1,0,-1),
         new Vector3Int(-1,0,1),
         new Vector3Int(-1,0,-1),
+        new Vector3Int(0,1,0),
+        new Vector3Int(0,-1,0)
     };
 
     void Start()
@@ -75,7 +77,7 @@ public class Pathfinding : MonoBehaviour
             }
         }
 
-        return new List<Node>(); // путь не найден
+        return new List<Node>();
     }
 
     List<Node> GetNeighbors(Node node)
