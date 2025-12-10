@@ -1,11 +1,26 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class TurnManager : MonoBehaviour
+public class BattleManager : MonoBehaviour
 {
-    private int currentTurn = 1;
+    public int CurrentRound = 1;
+    public int CurrentTurn = 1;
+    public int TurnsPerRound;
+    
+    List<Pawn> PlayerPawns;
+    List<Pawn> NonPlayerPawns;
 
-    void EndTurn()
+    public void Start()
     {
-        currentTurn++;
+        
+    }
+    public void EndTurn()
+    {
+        CurrentTurn++;
+        TurnsPerRound = PlayerPawns.Count + NonPlayerPawns.Count;
+
+        if (CurrentTurn != TurnsPerRound) { return; }
+
+
     }
 }

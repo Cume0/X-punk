@@ -32,7 +32,7 @@ public class UnitController : MonoBehaviour
         {
             ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue()); //raycast created
 
-            unitSelector();
+            selector();
         }
         else if (moveAction.action.WasPerformedThisFrame() && unitSelected)
         {
@@ -42,7 +42,7 @@ public class UnitController : MonoBehaviour
         }
     }
 
-    public void unitSelector()
+    public void selector()
     {
         bool hasHit = Physics.Raycast(ray, out hit); // raycast shot
 
@@ -53,7 +53,7 @@ public class UnitController : MonoBehaviour
                 print("Tile selected");
             }
 
-            if (hit.transform.TryGetComponent(out PawnData pawnData))
+            if (hit.transform.TryGetComponent(out Pawn pawnData))
             {
                 selectedUnit = hit.transform;
                 unitSelected = !unitSelected;

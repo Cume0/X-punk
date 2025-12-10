@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Node //class to work with patgfinding
+public class Node //class to work with pathfinding
 {
     public Vector3Int Cords;
     public int G; //Distance to startPoint

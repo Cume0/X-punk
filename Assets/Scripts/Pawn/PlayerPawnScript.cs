@@ -6,7 +6,14 @@ public class PlayerPawnScript : MonoBehaviour
 {
     //logic data
     public List<Node> path;
+    int moveSpeed;
 
+    void Awake()
+    {
+        moveSpeed = GetComponent<Pawn>().moveSpeed;
+        
+        transform.name = GetComponent<Pawn>().name;
+    }
     public IEnumerator MoveAlongPath()
     {
         while(path.Count != 0)
@@ -16,8 +23,6 @@ public class PlayerPawnScript : MonoBehaviour
             path[0].Cords.y,
             path[0].Cords.z
             );
-
-            int moveSpeed = GetComponent<PawnData>().moveSpeed;
 
             transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
 

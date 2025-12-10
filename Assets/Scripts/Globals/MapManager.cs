@@ -30,4 +30,9 @@ public class MapManager : MonoBehaviour
 
         return null;
     }
+
+    public void BlockNode(Vector3Int cords)
+    {
+        GetNode(cords).Blocked = true;
+    }
 }
