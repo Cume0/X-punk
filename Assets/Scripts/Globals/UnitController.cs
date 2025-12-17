@@ -48,7 +48,7 @@ public class UnitController : MonoBehaviour
 
         if (hasHit)
         { 
-            if (hit.transform.TryGetComponent(out Labeler tileLabeler))
+            if (hit.transform.TryGetComponent(out Tile tile))
             {
                 print("Tile selected");
             }
@@ -72,8 +72,9 @@ public class UnitController : MonoBehaviour
 
         Vector3Int targetCords = hit.transform.GetComponent<Labeler>().Cords;
         Node endNode = mapManager.GetNode(targetCords);
-                        
+                  
         selectedUnit.GetComponent<PlayerPawnScript>().path = pathfinding.FindPath(startNode, endNode);
+     
         StartCoroutine(selectedUnit.GetComponent<PlayerPawnScript>().MoveAlongPath());
 
         unitSelected = false;

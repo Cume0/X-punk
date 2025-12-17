@@ -9,7 +9,7 @@ public class MapManager : MonoBehaviour
     Dictionary<Vector3Int, Node> gridMap = new Dictionary<Vector3Int, Node>();
     public Dictionary<Vector3Int, Node> GridMap {get {return gridMap; } }
 
-    void Start()
+    void Awake()
     {
         for (int tileIndex = 0; tileIndex < transform.childCount; tileIndex++)
         {
@@ -34,5 +34,10 @@ public class MapManager : MonoBehaviour
     public void BlockNode(Vector3Int cords)
     {
         GetNode(cords).Blocked = true;
+    }
+
+    public void UnBlockNode(Vector3Int cords)
+    {
+        GetNode(cords).Blocked = false;
     }
 }

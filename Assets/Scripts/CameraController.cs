@@ -42,12 +42,10 @@ public class CameraController : MonoBehaviour
         if (scroll.y > 0)
         {
             transform.position += new Vector3(0, _verticalOffset, 0);
-            print("Going up");
         }
         else if (scroll.y < 0 && transform.position.y - _verticalOffset > 0)
         {
             transform.position -= new Vector3(0, _verticalOffset, 0);
-            print("Going down");
         }
     }
     
