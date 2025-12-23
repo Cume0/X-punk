@@ -1,12 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class Pathfinding : MonoBehaviour
 {
+    GameManager gameManager;
     MapManager mapManager;
-    UnitController unitController;
-    Dictionary<Vector3Int, Node> gridMap;
+    Dictionary<Vector3Int, Tile> gridMap;
     private static readonly Vector3Int[] directions =
     {
         new Vector3Int(1,0,0),
@@ -21,55 +22,52 @@ public class Pathfinding : MonoBehaviour
         new Vector3Int(0,-1,0)
     };
 
-    void Start()
+    public void Initialize()
     {
-        mapManager = FindAnyObjectByType<MapManager>();
-        unitController = GetComponent<UnitController>();
+        gameManager = FindAnyObjectByType<GameManager>();
+
+        mapManager = gameManager.mapManager;
         gridMap = mapManager.GridMap;
     }
 
-    public List<Node> FindPath(Node startNode, Node endNode)
+    public List<Tile> FindPath(Tile startTile, Tile endTile)
     {
         foreach (var tile in gridMap.Values)
         {
             tile.G = 0; tile.H = 0; tile.previous = null;
         }
 
-        List<Node> openList = new List<Node>(); //tiles to check
-        HashSet<Node> closedList = new HashSet<Node>(); //cheked tiles
+        List<Tile> openList = new List<Tile>(); //tiles to check
+        HashSet<Tile> closedList = new HashSet<Tile>(); //cheked tiles
 
-        openList.Add(startNode);
+        openList.Add(startTile);
 
         while (openList.Count > 0)
         {
-            var currentNode = openList.OrderBy(n => n.F).First();
+            var currentTile = openList.OrderBy(n => n.F).First();
 
-            if (currentNode == endNode)
-                return BuildPath(endNode);
+            if (currentTile == endTile)
+                return BuildPath(endTile);
 
-            openList.Remove(currentNode);
-            closedList.Add(currentNode);
+            openList.Remove(currentTile);
+            closedList.Add(currentTile);
 
-            foreach (var neighbor in GetNeighbors(currentNode))
+            foreach (var neighbor in GetNeighbors(currentTile))
             {
                 if (neighbor.Blocked || closedList.Contains(neighbor))
                     continue;
 
-                
-                if (Mathf.Abs(currentNode.Cords.y - neighbor.Cords.y) > unitController.jumpHight)
+                if (!CanMoveDiagonal(currentTile, neighbor))
                     continue;
 
-                if (!CanMoveDiagonal(currentNode, neighbor))
-                    continue;
-
-                int cost = GetMoveCost(currentNode, neighbor);
-                int tentativeG = currentNode.G + cost;
+                int cost = GetMoveCost(currentTile, neighbor);
+                int tentativeG = currentTile.G + cost;
 
                 if (!openList.Contains(neighbor) || tentativeG < neighbor.G)
                 {
                     neighbor.G = tentativeG;
-                    neighbor.H = Heuristic(neighbor.Cords, endNode.Cords);
-                    neighbor.previous = currentNode;
+                    neighbor.H = Heuristic(neighbor.Cords, endTile.Cords);
+                    neighbor.previous = currentTile;
 
                     if (!openList.Contains(neighbor))
                         openList.Add(neighbor);
@@ -77,22 +75,22 @@ public class Pathfinding : MonoBehaviour
             }
         }
 
-        return new List<Node>();
+        return new List<Tile>();
     }
 
-    List<Node> GetNeighbors(Node node)
+    List<Tile> GetNeighbors(Tile Tile)
     {
-        List<Node> result = new List<Node>();
+        List<Tile> result = new List<Tile>();
         foreach (var dir in directions)
         {
-            Vector3Int check = node.Cords + dir;
+            Vector3Int check = Tile.Cords + dir;
             if (gridMap.ContainsKey(check))
                 result.Add(gridMap[check]);
         }
         return result;
     }
 
-    bool CanMoveDiagonal(Node current, Node neighbor)
+    bool CanMoveDiagonal(Tile current, Tile neighbor)
     {
         int dx = neighbor.Cords.x - current.Cords.x;
         int dz = neighbor.Cords.z - current.Cords.z;
@@ -106,23 +104,21 @@ public class Pathfinding : MonoBehaviour
                gridMap.ContainsKey(stepZ) && !gridMap[stepZ].Blocked;
     }
 
-    int GetMoveCost(Node from, Node to)
-{
-    int baseCost;
+    int GetMoveCost(Tile from, Tile to)
+    {
+        int baseCost;
 
-    // Если шаг диагональный
-    if (from.Cords.x != to.Cords.x && from.Cords.z != to.Cords.z)
-        baseCost = 14; // √2 * 10 округлённо
-    else
-        baseCost = 10;
+        //diagonal cheking
+        if (from.Cords.x != to.Cords.x && from.Cords.z != to.Cords.z)
+            baseCost = (int)(Mathf.Sqrt(2) * from.costToMove);
+        else
+            baseCost = from.costToMove;
 
-    // Добавляем стоимость изменения высоты
-    int heightDiff = Mathf.Abs(from.Cords.y - to.Cords.y);
-    // По вкусу: 3-6 нормально. 5 — золотая середина.
-    baseCost += heightDiff * 5;
+        int heightDiff = Mathf.Abs(from.Cords.y - to.Cords.y);
+        baseCost += heightDiff * 5;
 
-    return baseCost;
-}
+        return baseCost;
+    }
 
 
     int Heuristic(Vector3Int a, Vector3Int b)
@@ -132,10 +128,10 @@ public class Pathfinding : MonoBehaviour
         return 10 * Mathf.Max(dx, dz);
     }
 
-    List<Node> BuildPath(Node endNode)
+    List<Tile> BuildPath(Tile endTile)
     {
-        List<Node> path = new List<Node>();
-        Node curr = endNode;
+        List<Tile> path = new List<Tile>();
+        Tile curr = endTile;
 
         while (curr != null)
         {
@@ -146,4 +142,44 @@ public class Pathfinding : MonoBehaviour
         path.Reverse();
         return path;
     }
+
+    public List<Tile> GetReachableTiles(Tile startTile, int movementPoints)
+    {
+        Dictionary<Tile, int> costSoFar = new Dictionary<Tile, int>();
+        Queue<Tile> frontier = new Queue<Tile>();
+
+        frontier.Enqueue(startTile);
+        costSoFar[startTile] = 0;
+
+        List<Tile> reachable = new List<Tile>();
+
+        while (frontier.Count > 0)
+        {
+            Tile current = frontier.Dequeue();
+            reachable.Add(current);
+
+            foreach (var neighbor in GetNeighbors(current))
+            {
+                if (neighbor.Blocked)
+                    continue;
+
+                if (!CanMoveDiagonal(current, neighbor))
+                    continue;
+
+                int newCost = costSoFar[current] + GetMoveCost(current, neighbor);
+
+                if (newCost > movementPoints * current.costToMove)
+                    continue;
+
+                if (!costSoFar.ContainsKey(neighbor))
+                {
+                    costSoFar[neighbor] = newCost;
+                    frontier.Enqueue(neighbor);
+                }
+            }
+        }
+
+        return reachable;
+    }
+
 }

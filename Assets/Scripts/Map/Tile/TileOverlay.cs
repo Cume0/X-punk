@@ -1,21 +1,16 @@
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.PlayerLoop;
 
 public class TileOverlay : MonoBehaviour
 {
-    void Update()
+    GameObject highlight;
+
+    public void Initialize()
     {
-        Ray CursourRay = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        RaycastHit CursourHit;
-
-        bool hasHit = Physics.Raycast(CursourRay, out CursourHit);
-
-        if (hasHit)
-        {
-            if (CursourHit.transform.tag == "Tile")
-            {
-                transform.position = CursourHit.transform.position;
-            }
-        }
+        highlight = transform.GetChild(0).GameObject();
     }
+
+    public void Show() => highlight.SetActive(true);
+    public void Hide() => highlight.SetActive(false);
 }

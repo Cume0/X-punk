@@ -6,10 +6,10 @@ public class MapManager : MonoBehaviour
     [SerializeField] int unityMapSize;
     public int UnityMapSize {get {return unityMapSize; } }
 
-    Dictionary<Vector3Int, Node> gridMap = new Dictionary<Vector3Int, Node>();
-    public Dictionary<Vector3Int, Node> GridMap {get {return gridMap; } }
+    Dictionary<Vector3Int, Tile> gridMap = new Dictionary<Vector3Int, Tile>();
+    public Dictionary<Vector3Int, Tile> GridMap {get {return gridMap; } }
 
-    void Awake()
+    public void Initialize()
     {
         for (int tileIndex = 0; tileIndex < transform.childCount; tileIndex++)
         {
@@ -17,11 +17,13 @@ public class MapManager : MonoBehaviour
 
             Vector3Int gridPosInt = new Vector3Int((int)gridPos.x, (int)gridPos.y, (int)gridPos.z);
 
-            gridMap[gridPosInt] = new Node(gridPosInt, transform.GetChild(tileIndex).gameObject.GetComponent<Tile>().blockNode);
+            gridMap.Add(gridPosInt, transform.GetChild(tileIndex).GetComponent<Tile>());
+
+            gridMap[gridPosInt].Initialize(gridPosInt, transform.GetChild(tileIndex).gameObject.GetComponent<Tile>().blockNode);
         }
     }
     
-    public Node GetNode(Vector3Int cords)
+    public Tile GetTile(Vector3Int cords)
     {
         if (gridMap.ContainsKey(cords))
         {
@@ -33,11 +35,11 @@ public class MapManager : MonoBehaviour
 
     public void BlockNode(Vector3Int cords)
     {
-        GetNode(cords).Blocked = true;
+        GetTile(cords).Blocked = true;
     }
 
     public void UnBlockNode(Vector3Int cords)
     {
-        GetNode(cords).Blocked = false;
+        GetTile(cords).Blocked = false;
     }
 }

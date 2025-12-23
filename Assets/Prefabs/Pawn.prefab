@@ -154,7 +154,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1637741564826464025}
-  - component: {fileID: 4965876811425090370}
   - component: {fileID: 4958670450593323665}
   - component: {fileID: 6114374158489276651}
   m_Layer: 0
@@ -180,23 +179,6 @@ Transform:
   - {fileID: 8172093099999061835}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4965876811425090370
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9160276902724688871}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb7fee77c1d7f30458c3ce34b740967b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlaceHolder
-  id: 0
-  team: 0
-  pawnName: 
-  moveSpeed: 3
-  movePoints: 0
 --- !u!114 &4958670450593323665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -209,7 +191,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc1ae366eef3cf84cb9ddc63d9c8de84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPawnScript
+  id: 0
+  team: 0
+  pawnName: 
+  moveSpeed: 3
+  movePoints: 5
   cords: {x: 0, y: 0, z: 0}
+  state: 0
   mapManager: {fileID: 0}
 --- !u!54 &6114374158489276651
 Rigidbody:

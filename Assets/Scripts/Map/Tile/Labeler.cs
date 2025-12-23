@@ -2,7 +2,6 @@ using UnityEngine;
 using TMPro;
 using System;
 
-[ExecuteAlways]
 public class Labeler : MonoBehaviour
 {
     TextMeshPro label;
@@ -10,7 +9,7 @@ public class Labeler : MonoBehaviour
     public Vector3Int Cords {get{ return cords; }}
     MapManager mapManager;
 
-    void Awake()
+    public void Initialize()
     {
         mapManager = FindFirstObjectByType<MapManager>();
         label = GetComponentInChildren<TextMeshPro>();
