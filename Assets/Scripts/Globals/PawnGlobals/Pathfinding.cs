@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Pathfinding : MonoBehaviour
 {
-    GameManager gameManager;
     MapManager mapManager;
     Dictionary<Vector3Int, Tile> gridMap;
     private static readonly Vector3Int[] directions =
@@ -24,13 +23,11 @@ public class Pathfinding : MonoBehaviour
 
     public void Initialize()
     {
-        gameManager = FindAnyObjectByType<GameManager>();
-
-        mapManager = gameManager.mapManager;
+        mapManager = GameManager.mapManager;
         gridMap = mapManager.GridMap;
     }
 
-    public List<Tile> FindPath(Tile startTile, Tile endTile)
+    public List<Tile> FindPath(Tile startTile, Tile endTile, int movementPoints)
     {
         foreach (var tile in gridMap.Values)
         {
@@ -39,6 +36,8 @@ public class Pathfinding : MonoBehaviour
 
         List<Tile> openList = new List<Tile>(); //tiles to check
         HashSet<Tile> closedList = new HashSet<Tile>(); //cheked tiles
+
+        int movementPool = movementPoints * 10;
 
         openList.Add(startTile);
 
@@ -62,6 +61,9 @@ public class Pathfinding : MonoBehaviour
 
                 int cost = GetMoveCost(currentTile, neighbor);
                 int tentativeG = currentTile.G + cost;
+                
+                if (tentativeG > movementPool)
+                    continue;
 
                 if (!openList.Contains(neighbor) || tentativeG < neighbor.G)
                 {
@@ -72,6 +74,7 @@ public class Pathfinding : MonoBehaviour
                     if (!openList.Contains(neighbor))
                         openList.Add(neighbor);
                 }
+                
             }
         }
 
@@ -108,7 +111,7 @@ public class Pathfinding : MonoBehaviour
     {
         int baseCost;
 
-        //diagonal cheking
+        //diagonal check
         if (from.Cords.x != to.Cords.x && from.Cords.z != to.Cords.z)
             baseCost = (int)(Mathf.Sqrt(2) * from.costToMove);
         else

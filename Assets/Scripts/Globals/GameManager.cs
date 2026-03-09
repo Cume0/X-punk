@@ -2,26 +2,52 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public CombatManager combatManager;
-    public MapManager mapManager;
-    public Pathfinding pathfinding;
-    public UnitController unitController;
-    public UnitManager unitManager;
+    //"Glue"
+    public static GameManager current;
+    public static GameEvents gameEvents;
+
+    //Map
+    public static MapManager mapManager;
+
+    //Units
+    public static CombatManager combatManager;
+    public static UnitController unitController;
+    public static UnitManager unitManager;
+    public static Pathfinding pathfinding;
+    public static TurnManager turnManager;
+
+    //UI
+    public static UIManager UIManager;
+
+    
     void Awake()
     {
-        combatManager = FindAnyObjectByType<CombatManager>();
+        current = this;
+        gameEvents = FindAnyObjectByType<GameEvents>();
+
         mapManager = FindAnyObjectByType<MapManager>();
-        pathfinding = FindAnyObjectByType<Pathfinding>();
-        unitController = FindAnyObjectByType<UnitController>();
+
         unitManager = FindAnyObjectByType<UnitManager>();
+        combatManager = FindAnyObjectByType<CombatManager>();
+        unitController = FindAnyObjectByType<UnitController>();
+        pathfinding = FindAnyObjectByType<Pathfinding>();
+        turnManager = FindAnyObjectByType<TurnManager>();
+
+        UIManager = FindAnyObjectByType<UIManager>();
     }
 
     void Start()
     {
-        combatManager.Initialize();
+        gameEvents.Initialize();
+
         mapManager.Initialize(); //Initializes all tiles
-        pathfinding.Initialize();
-        unitController.Initialize();
+
         unitManager.Initialize(); //Initializes all pawns
+        combatManager.Initialize();
+        unitController.Initialize();
+        pathfinding.Initialize();
+        turnManager.Initialize();
+        
+        UIManager.Initialize();
     }
 }

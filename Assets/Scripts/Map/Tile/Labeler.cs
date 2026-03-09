@@ -11,7 +11,7 @@ public class Labeler : MonoBehaviour
 
     public void Initialize()
     {
-        mapManager = FindFirstObjectByType<MapManager>();
+        mapManager = GameManager.mapManager;
         label = GetComponentInChildren<TextMeshPro>();
 
         DisolayCords();

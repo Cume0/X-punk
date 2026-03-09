@@ -11,6 +11,8 @@ public class MapManager : MonoBehaviour
 
     public void Initialize()
     {
+        gridMap.Clear();
+        
         for (int tileIndex = 0; tileIndex < transform.childCount; tileIndex++)
         {
             Vector3 gridPos = transform.GetChild(tileIndex).transform.position;
