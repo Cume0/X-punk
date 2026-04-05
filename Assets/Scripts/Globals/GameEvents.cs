@@ -8,8 +8,8 @@ public class GameEvents : MonoBehaviour
         
     }
 
-    public event Action<int, int> onAttackTrigger;
-    public void AttackTrigger(int AttackerID, int DefenderID)
+    public event Action<Guid, Guid> onAttackTrigger;
+    public void AttackTrigger(Guid AttackerID, Guid DefenderID)
     {
         if (onAttackTrigger != null)
         {
@@ -17,8 +17,8 @@ public class GameEvents : MonoBehaviour
         }
     }
 
-    public event Action<bool, Transform> onUnitSelection;
-    public void UnitSelected(bool isUnitSelected, Transform selectedUnit)
+    public event Action<bool, GameObject> onUnitSelection;
+    public void UnitSelected(bool isUnitSelected, GameObject selectedUnit)
     {
         if (onUnitSelection != null)
         {
@@ -44,8 +44,8 @@ public class GameEvents : MonoBehaviour
         }
     }
 
-    public event Action<int, int> onKill;
-    public void kill(int killerID, int victimID)
+    public event Action<Guid, Guid> onKill;
+    public void kill(Guid killerID, Guid victimID)
     {
         if (onKill != null)
         {
@@ -62,8 +62,8 @@ public class GameEvents : MonoBehaviour
         }
     }
 
-    public event Action<int> onPawnsTurn;
-    public void PawnsTurn(int ID)
+    public event Action<Guid> onPawnsTurn;
+    public void PawnsTurn(Guid ID)
     {
         if (onPawnsTurn != null)
         {
@@ -71,16 +71,16 @@ public class GameEvents : MonoBehaviour
         }
     }
 
-    public event Action<int> onPawnWalkStart;
-    public void PawnWalkStart(int ID)
+    public event Action<Guid> onPawnWalkStart;
+    public void PawnWalkStart(Guid ID)
     {
         if (onPawnWalkStart != null)
         {
             onPawnWalkStart(ID);
         }
     }
-    public event Action<int> onPawnWalkFinish;
-    public void PawnWalkFinish(int ID)
+    public event Action<Guid> onPawnWalkFinish;
+    public void PawnWalkFinish(Guid ID)
     {
         if (onPawnWalkFinish != null)
         {

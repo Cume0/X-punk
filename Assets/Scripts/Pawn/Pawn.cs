@@ -6,7 +6,7 @@ using UnityEngine;
 public class Pawn : MonoBehaviour
 {
     [Header ("Identification")]
-    [SerializeField] public int id;
+    [SerializeField] public Guid id;
     [SerializeField] public TeamsEnum team;
     [SerializeField] private string pawnName;
 
@@ -19,13 +19,11 @@ public class Pawn : MonoBehaviour
     [SerializeField] public int maxHP;
     [SerializeField] public int SightDistance;
     [SerializeField] public int accuracy;
-    [SerializeField] public int defence; //////
+    [SerializeField] public int defence; 
 
-
-    
     public List<Tile> path;
     public Vector3Int cords;
-    public List<Transform> pawnsInSight;
+    public List<GameObject> pawnsInSight;
     public StatesEnum state;
     public int HP;
     public int movePoints;
@@ -33,12 +31,12 @@ public class Pawn : MonoBehaviour
     public int initiative;
 
     EnemyAI AI;
-    MapManager mapManager;
     GameEvents gameEvents;
 
     public void Initialize()
     {    
-        mapManager = GameManager.mapManager;
+        id = Guid.NewGuid();
+
         gameEvents = GameManager.gameEvents;
 
         gameEvents.onPawnsTurn += BeginTurn;
@@ -48,8 +46,6 @@ public class Pawn : MonoBehaviour
         Mathf.RoundToInt(transform.position.y),
         Mathf.RoundToInt(transform.position.z)
         );
-
-        mapManager.BlockNode(cords);
 
         state = StatesEnum.InActive;
 
@@ -74,7 +70,7 @@ public class Pawn : MonoBehaviour
         return UnityEngine.Random.Range(1, 21);
     }
 
-    public void BeginTurn(int givenID)
+    public void BeginTurn(Guid givenID)
     {
         if (givenID != id)
         {
@@ -105,58 +101,4 @@ public class Pawn : MonoBehaviour
 
         visualsTransform.LookAt(tileCenter);
     }
-
-    public IEnumerator MoveAlongPath()
-    {
-        if (path.Count == 0)
-        {
-            print("Too far");
-            yield break;
-        }
-
-        state = StatesEnum.Busy;
-        print("Unit is moving " + state);
-
-        gameEvents.PawnWalkStart(id);
-
-        mapManager.UnBlockNode(cords);
-        mapManager.BlockNode(path[ path.Count - 1 ].Cords);
-
-        movePoints -= path.Count;
-
-        while(path.Count != 0)
-        {
-            Vector3Int targetPos = new Vector3Int(
-            path[0].Cords.x,
-            path[0].Cords.y,
-            path[0].Cords.z
-            );
-
-            LookAtTarget(targetPos);
-
-            mapManager.BlockNode(targetPos); 
-
-            transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
-
-            if (Vector3.Distance(transform.position, targetPos) < 0.01f)
-            {
-                
-                mapManager.UnBlockNode(targetPos);
-
-                path.RemoveAt(0); 
-            }
-
-            cords = targetPos;
-
-            yield return null;
-        }
-
-        state = StatesEnum.Active;
-
-        gameEvents.PawnWalkFinish(id);
-
-        yield break;
-    }
-
-    //
 }

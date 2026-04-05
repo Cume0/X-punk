@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,13 +7,13 @@ public class EnemyButton : MonoBehaviour
 {
     [SerializeField] public Button button;
 
-    int AttackerID;
-    int DefenderID;
+    Guid AttackerID;
+    Guid DefenderID;
     TextMeshProUGUI label;
 
     GameEvents gameEvents;
 
-    public void Initialize(int GivenAttackerID, int GivenDefenderID)
+    public void Initialize(Guid GivenAttackerID, Guid GivenDefenderID)
     {
         gameEvents = GameManager.gameEvents;
 

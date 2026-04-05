@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class CombatManager : MonoBehaviour
@@ -24,14 +25,14 @@ public class CombatManager : MonoBehaviour
         gameEvents.onAttackTrigger += UnitAttaking;
     }
     
-    public void UnitSelection(bool isUnitSelected, Transform selectedUnit)
+    public void UnitSelection(bool isUnitSelected, GameObject selectedUnit)
     {
         thisUnitData = selectedUnit.GetComponent<Pawn>();
 
         isThisUnitSelected = isUnitSelected;
     }
 
-    public void UnitAttaking(int givenAttackerID, int givenDefenderID)
+    public void UnitAttaking(Guid givenAttackerID, Guid givenDefenderID)
     {
         if (thisUnitData == null || unitManager.pawns[givenDefenderID] == null) return;
         
@@ -61,7 +62,6 @@ public class CombatManager : MonoBehaviour
             {
                 Destroy(unitManager.pawns[givenDefenderID].gameObject);
 
-                mapManager.UnBlockNode(unitManager.pawns[givenDefenderID].GetComponent<Pawn>().cords);
                 turnManager.initiativeOrder.Remove(unitManager.pawns[givenDefenderID]);
                 
                 gameEvents.kill(givenAttackerID, givenDefenderID);
@@ -71,7 +71,7 @@ public class CombatManager : MonoBehaviour
 
     public bool calculateAttack(int Accuracy, int Defence)
     {
-        if (Random.Range(1, 101) + Accuracy < Defence)
+        if (UnityEngine.Random.Range(1, 101) + Accuracy < Defence)
         {
             print("Miss");
             return false;

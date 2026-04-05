@@ -7,8 +7,8 @@ public class TurnManager : MonoBehaviour
 {
     public int currentTurn = 0;
     public int currentRound = 0;
-    Transform currentActivePawn;
-    public Dictionary<Transform, int> initiativeOrder;
+    GameObject currentActivePawn;
+    public Dictionary<GameObject, int> initiativeOrder;
 
     GameEvents gameEvents;
     UnitManager unitManager;
@@ -19,11 +19,11 @@ public class TurnManager : MonoBehaviour
 
         gameEvents.onEndTurn += EndTurn;
 
-        initiativeOrder = new Dictionary<Transform, int>();
-        foreach (Transform unit in unitManager.pawns.Values)
+        initiativeOrder = new Dictionary<GameObject, int>();
+        foreach (GameObject unit in unitManager.pawns.Values)
         {
             initiativeOrder.Add(unit, unit.GetComponent<Pawn>().getInitiative());
-            print(unit.GetComponent<Pawn>().id + " " + initiativeOrder[unit]);
+            print(unit.GetComponent<Pawn>().name + " " + initiativeOrder[unit]);
         }
 
         currentActivePawn = initiativeOrder.OrderBy(n => n.Value).First().Key;

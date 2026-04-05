@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.InputSystem;
 
 public class UnitController : MonoBehaviour
@@ -10,24 +11,20 @@ public class UnitController : MonoBehaviour
     [SerializeField] InputActionReference moveAction;
     [SerializeField] InputActionReference menuAction;
 
-    Pathfinding pathfinding;
     GameEvents gameEvents;
-    MapManager mapManager;
 
     Ray ray; //where raycast is contained
     RaycastHit hit; //where raycast target is contained
 
     StatesEnum states;
-    bool unitSelected = false;
-    Transform previousSelectedUnit;
-    Transform selectedUnit;
+    bool isUnitSelected = false;
+    GameObject previousSelectedUnit;
+    GameObject selectedUnit;
     Pawn selectedUnitData;
 
     public void Initialize()
     {
         gameEvents = GameManager.gameEvents;
-        mapManager = GameManager.mapManager;
-        pathfinding = GameManager.pathfinding;
     }
 
     void Update()
@@ -43,7 +40,7 @@ public class UnitController : MonoBehaviour
 
             selector();
         }
-        else if (moveAction.action.WasPerformedThisFrame() && unitSelected)
+        else if (moveAction.action.WasPerformedThisFrame() && isUnitSelected)
         {
             ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue()); //raycast created
 
@@ -57,48 +54,45 @@ public class UnitController : MonoBehaviour
 
         if (hasHit)
         { 
-            if (hit.transform.TryGetComponent(out Tile tile))
+            if (hit.transform.TryGetComponent(out Terrain terrain))
             {
-                //
+                if (selectedUnit == null)
+                {
+                    return;
+                }
+
+                unitMover();
             }
 
             if (hit.transform.TryGetComponent(out Pawn pawn))
             {
                 previousSelectedUnit = selectedUnit;
-                selectedUnit = hit.transform;
-                selectedUnitData = selectedUnit.GetComponent<Pawn>();
+                selectedUnit = hit.transform.gameObject;
+                selectedUnitData = hit.transform.GetComponent<Pawn>();
+                print("got it");
 
                 if (selectedUnitData.state == StatesEnum.Busy || selectedUnitData.state == StatesEnum.InActive ||selectedUnitData.team == TeamsEnum.Enemy)
                 {
                     return;
                 }
 
-                if (selectedUnit.Equals(previousSelectedUnit) && unitSelected)
+                if (selectedUnit.Equals(previousSelectedUnit) && isUnitSelected)
                 {
-                    unitSelected = false;
-                    gameEvents.UnitSelected(unitSelected, selectedUnit);
+                    isUnitSelected = false;
+                    gameEvents.UnitSelected(isUnitSelected, selectedUnit);
                     return;
                 }
 
-                unitSelected = true;
-                gameEvents.UnitSelected(unitSelected, selectedUnit);
+                isUnitSelected = true;
+                gameEvents.UnitSelected(isUnitSelected, selectedUnit);
             }
         }
     }
-
+    
     public void unitMover()
     {  
         Physics.Raycast(ray, out hit); // raycast shot
 
-        Vector3 pos = selectedUnit.position / mapManager.UnityMapSize;
-        Vector3Int startCords = Vector3Int.RoundToInt(pos);
-        Tile startTile = mapManager.GetTile(startCords);
-
-        Vector3Int targetCords = hit.transform.GetComponent<Tile>().Cords;
-        Tile endTile = mapManager.GetTile(targetCords);
-                  
-        selectedUnitData.path = pathfinding.FindPath(startTile, endTile, selectedUnitData.movePoints);
-
-        StartCoroutine(selectedUnitData.MoveAlongPath());
+        selectedUnit.GetComponent<NavMeshAgent>().SetDestination(hit.point);
     }
 }

@@ -11,10 +11,9 @@ public class UIManager : MonoBehaviour
     GameObject battleUI;
 
     GameEvents gameEvents;
-    Pathfinding pathfinding;
     MapManager mapManager;
 
-    Transform thisUnit;
+    GameObject thisUnit;
     Pawn thisUnitData;
 
     List<Tile> highlightedTiles = new List<Tile>();
@@ -23,7 +22,6 @@ public class UIManager : MonoBehaviour
     public void Initialize()
     {
         gameEvents = GameManager.gameEvents;
-        pathfinding = GameManager.pathfinding;
         mapManager = GameManager.mapManager;
 
         gameEvents.onUnitSelection += UnitSelected;
@@ -40,9 +38,7 @@ public class UIManager : MonoBehaviour
         battleUI.SetActive(false);
     }
 
-    //
-
-    public void UnitSelected(bool isUnitSelected, Transform selectedUnit)
+    public void UnitSelected(bool isUnitSelected, GameObject selectedUnit)
     {
         thisUnit = selectedUnit;
         thisUnitData = selectedUnit.GetComponent<Pawn>();
@@ -72,7 +68,7 @@ public class UIManager : MonoBehaviour
         battleUI.SetActive(false);
     }
 
-    private void AfterKillUIRefresh(int killerID, int victimID)
+    private void AfterKillUIRefresh(Guid killerID, Guid victimID)
     {
         HideBattleUI();
         ShowBattleUI();
@@ -92,7 +88,7 @@ public class UIManager : MonoBehaviour
         }
     }
     
-    public void PawnWalkStart(int ID)
+    public void PawnWalkStart(Guid ID)
     {
         if (ID != thisUnitData.id)
         {
@@ -101,7 +97,7 @@ public class UIManager : MonoBehaviour
 
         HideBattleUI();
     }
-    public void PawnWalkFinished(int ID)
+    public void PawnWalkFinished(Guid ID)
     {
         if (ID != thisUnitData.id)
         {
@@ -120,33 +116,12 @@ public class UIManager : MonoBehaviour
 
     public void ShowMovementArea()
     {
-        HideMovementArea();
 
-        Vector3Int startCords = Vector3Int.RoundToInt(thisUnit.position / mapManager.UnityMapSize);
-
-        Tile startTile = mapManager.GetTile(startCords);
-
-        var tiles = pathfinding.GetReachableTiles(
-            startTile,
-            thisUnitData.movePoints
-        );
-
-        foreach (var Tile in tiles)
-        {
-            if (Tile.tileOverlay != null)
-            {
-                Tile.tileOverlay.Show();
-                highlightedTiles.Add(Tile);
-            }
-        }
     }
 
     void HideMovementArea()
     {
-        foreach (var Tile in highlightedTiles)
-            Tile.tileOverlay?.Hide();
 
-        highlightedTiles.Clear();
     }
 
     public void ShowUnitsInSight()
@@ -155,9 +130,9 @@ public class UIManager : MonoBehaviour
 
         int thisUnitSightRange = thisUnitData.SightDistance;
 
-        foreach (Transform unit in GameManager.unitManager.pawns.Values)
+        foreach (GameObject unit in GameManager.unitManager.pawns.Values)
         {
-            if ( Vector3.Distance(thisUnit.position, unit.position) < thisUnitSightRange && 
+            if ( Vector3.Distance(thisUnit.transform.position, unit.transform.position) < thisUnitSightRange && 
                 !unit.Equals(thisUnit) && 
                 unit.GetComponent<Pawn>().team == TeamsEnum.Enemy )
             {

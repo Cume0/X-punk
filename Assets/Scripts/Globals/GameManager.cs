@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour
     public static CombatManager combatManager;
     public static UnitController unitController;
     public static UnitManager unitManager;
-    public static Pathfinding pathfinding;
     public static TurnManager turnManager;
 
     //UI
@@ -30,7 +29,6 @@ public class GameManager : MonoBehaviour
         unitManager = FindAnyObjectByType<UnitManager>();
         combatManager = FindAnyObjectByType<CombatManager>();
         unitController = FindAnyObjectByType<UnitController>();
-        pathfinding = FindAnyObjectByType<Pathfinding>();
         turnManager = FindAnyObjectByType<TurnManager>();
 
         UIManager = FindAnyObjectByType<UIManager>();
@@ -40,12 +38,9 @@ public class GameManager : MonoBehaviour
     {
         gameEvents.Initialize();
 
-        mapManager.Initialize(); //Initializes all tiles
-
         unitManager.Initialize(); //Initializes all pawns
         combatManager.Initialize();
         unitController.Initialize();
-        pathfinding.Initialize();
         turnManager.Initialize();
         
         UIManager.Initialize();
