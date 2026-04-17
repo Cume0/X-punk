@@ -17,7 +17,7 @@ public class TurnManager : MonoBehaviour
         gameEvents = GameManager.gameEvents;
         unitManager = GameManager.unitManager;
 
-        gameEvents.onEndTurn += EndTurn;
+        gameEvents.onEndTurnButtonPressed += turnShift;
 
         initiativeOrder = new Dictionary<GameObject, int>();
         foreach (GameObject unit in unitManager.pawns.Values)
@@ -31,10 +31,8 @@ public class TurnManager : MonoBehaviour
         gameEvents.PawnsTurn(currentActivePawn.GetComponent<Pawn>().id);
     }
 
-    public void EndTurn()
+    public void turnShift()
     {
-        gameEvents.HideBattleUI();
-
         currentTurn++;
 
         if (currentTurn >= initiativeOrder.Count)
@@ -45,8 +43,8 @@ public class TurnManager : MonoBehaviour
         }
         print("turn " + currentTurn);
 
-        currentActivePawn.GetComponent<Pawn>().state = StatesEnum.InActive;
-        currentActivePawn = initiativeOrder.OrderBy(n => n.Value).Select(n => n.Key).ElementAt(currentTurn);;
+        currentActivePawn.GetComponent<Pawn>().EndTurn();
+        currentActivePawn = initiativeOrder.OrderBy(n => n.Value).Select(n => n.Key).ElementAt(currentTurn);
 
         gameEvents.PawnsTurn(currentActivePawn.GetComponent<Pawn>().id);
     }

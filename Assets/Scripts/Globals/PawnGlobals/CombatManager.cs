@@ -46,7 +46,7 @@ public class CombatManager : MonoBehaviour
                 return;
             }
 
-            unitManager.pawns[givenAttackerID].GetComponent<Pawn>().LookAtTarget(unitManager.pawns[givenDefenderID].GetComponent<Pawn>().cords);
+            unitManager.pawns[givenAttackerID].transform.LookAt(unitManager.pawns[givenDefenderID].transform.position);
 
             if (!calculateAttack(attackerData.accuracy, defenderData.defence))
             {

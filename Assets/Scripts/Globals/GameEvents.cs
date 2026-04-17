@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameEvents : MonoBehaviour
@@ -53,12 +54,12 @@ public class GameEvents : MonoBehaviour
         }
     }
 
-    public event Action onEndTurn;
+    public event Action onEndTurnButtonPressed;
     public void EndTurn()
     {
-        if (onEndTurn != null)
+        if (onEndTurnButtonPressed != null)
         {
-            onEndTurn();
+            onEndTurnButtonPressed();
         }
     }
 
@@ -71,21 +72,21 @@ public class GameEvents : MonoBehaviour
         }
     }
 
-    public event Action<Guid> onPawnWalkStart;
-    public void PawnWalkStart(Guid ID)
+    public event Action<Guid, Vector3, List<Vector3>> onShowPath;
+    public void ShowPath(Guid ID, Vector3 FuturePositionCords, List<Vector3> path)
     {
-        if (onPawnWalkStart != null)
+        if (onShowPath != null)
         {
-            onPawnWalkStart(ID);
+            onShowPath(ID, FuturePositionCords, path);
         }
     }
-    public event Action<Guid> onPawnWalkFinish;
-    public void PawnWalkFinish(Guid ID)
+
+    public event Action<Guid> onHidePath;
+    public void HidePath(Guid ID)
     {
-        if (onPawnWalkFinish != null)
+        if (onHidePath != null)
         {
-            onPawnWalkFinish(ID);
+            onHidePath(ID);
         }
     }
 }
-

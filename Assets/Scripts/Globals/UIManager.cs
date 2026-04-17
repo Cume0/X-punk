@@ -8,31 +8,40 @@ public class UIManager : MonoBehaviour
     [SerializeField] Transform enemyBar;
     [SerializeField] Transform menu;
     [SerializeField] Transform volume;
-    GameObject battleUI;
+    [SerializeField] PathLineVisual pathLineVisual;
 
     GameEvents gameEvents;
-    MapManager mapManager;
 
+    GameObject battleUI;
     GameObject thisUnit;
     Pawn thisUnitData;
 
-    List<Tile> highlightedTiles = new List<Tile>();
     bool AttackButtonPressed = false;
     bool isThisUnitSelected = false;
+    
+    Dictionary<Guid, PathLineVisual> pathLineVisuals = new Dictionary<Guid, PathLineVisual>();
     public void Initialize()
     {
         gameEvents = GameManager.gameEvents;
-        mapManager = GameManager.mapManager;
 
         gameEvents.onUnitSelection += UnitSelected;
         gameEvents.onShowBattleUI += ShowBattleUI;
         gameEvents.onHideBattleUI += HideBattleUI;
         gameEvents.onKill += AfterKillUIRefresh;
+        gameEvents.onShowPath += ShowPath;
+        gameEvents.onHidePath += HidePath;
 
-        gameEvents.onPawnWalkFinish += PawnWalkFinished;
-        gameEvents.onPawnWalkStart += PawnWalkStart;
+        gameEvents.onEndTurnButtonPressed += EndTurnClear;
 
         GameObject.Find("EndTurnButton").GetComponent<EndTurnButton>().Initialize();
+
+        foreach (GameObject pawn in GameManager.unitManager.pawns.Values)
+        {
+            var pathLine = Instantiate(pathLineVisual, transform.Find("WorldSpaceUI").Find("PathsLineVisuals"));
+            Pawn pawnData = pawn.GetComponent<Pawn>();
+            pathLine.Initialize(pawnData.id);
+            pathLineVisuals.Add(pawnData.id, pathLine);
+        }
 
         battleUI = GameObject.Find("BattleUI");
         battleUI.SetActive(false);
@@ -56,13 +65,11 @@ public class UIManager : MonoBehaviour
 
     public void ShowBattleUI()
     {
-        ShowMovementArea();
         battleUI.SetActive(true);
     }
 
     public void HideBattleUI()
     {
-        HideMovementArea();
         HideUnitsInSight();
         AttackButtonPressed = false;
         battleUI.SetActive(false);
@@ -87,42 +94,6 @@ public class UIManager : MonoBehaviour
             HideUnitsInSight();
         }
     }
-    
-    public void PawnWalkStart(Guid ID)
-    {
-        if (ID != thisUnitData.id)
-        {
-            return;
-        }
-
-        HideBattleUI();
-    }
-    public void PawnWalkFinished(Guid ID)
-    {
-        if (ID != thisUnitData.id)
-        {
-            return;
-        }
-
-        ShowBattleUI();
-    }
-
-    public void Exit()
-    {
-        Application.Quit();
-    }
-
-    //
-
-    public void ShowMovementArea()
-    {
-
-    }
-
-    void HideMovementArea()
-    {
-
-    }
 
     public void ShowUnitsInSight()
     {
@@ -146,7 +117,10 @@ public class UIManager : MonoBehaviour
 
     public void HideUnitsInSight()
     {
-        thisUnitData.pawnsInSight.Clear();
+        if (thisUnitData.pawnsInSight.Count != 0)
+        {
+            thisUnitData.pawnsInSight.Clear();
+        }
 
         if (enemyBar.childCount == 0)
         {
@@ -157,5 +131,32 @@ public class UIManager : MonoBehaviour
         {
             Destroy(enemyBar.transform.GetChild(childIndex).gameObject);
         }
+    }
+
+    private void ShowPath(Guid guid, Vector3 FuturePositionCords, List<Vector3> path)
+    {
+        if (pathLineVisuals.TryGetValue(guid, out PathLineVisual pathLine))
+        {
+            pathLine.ShowPath(FuturePositionCords, path);
+        }
+    }
+    
+    private void HidePath(Guid guid)
+    {
+        if (pathLineVisuals.TryGetValue(guid, out PathLineVisual pathLine))
+        {
+            pathLine.HidePath();
+        }
+    }
+
+    public void EndTurnClear()
+    {
+        HideBattleUI();
+        HidePath(thisUnitData.id);
+        thisUnitData.path.Clear();
+    }
+    public void Exit()
+    {
+        Application.Quit();
     }
 }

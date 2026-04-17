@@ -1,7 +1,8 @@
+using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.AI;
 
 public class Pawn : MonoBehaviour
 {
@@ -21,17 +22,22 @@ public class Pawn : MonoBehaviour
     [SerializeField] public int accuracy;
     [SerializeField] public int defence; 
 
-    public List<Tile> path;
-    public Vector3Int cords;
     public List<GameObject> pawnsInSight;
+    public List<Vector3> path;
     public StatesEnum state;
     public int HP;
-    public int movePoints;
+    public float movePoints;
+    public float movePointsSpent;
+    public float movePointsRemaining;
+    public float previewMovePointsSpent;
+    public float previewMovePointsRemaining;
     public int actionPoints;
     public int initiative;
 
     EnemyAI AI;
     GameEvents gameEvents;
+    NavMeshAgent navMeshAgent;
+    NavMeshObstacle navMeshObstacle;
 
     public void Initialize()
     {    
@@ -41,12 +47,9 @@ public class Pawn : MonoBehaviour
 
         gameEvents.onPawnsTurn += BeginTurn;
 
-        cords = new Vector3Int(
-        Mathf.RoundToInt(transform.position.x),
-        Mathf.RoundToInt(transform.position.y),
-        Mathf.RoundToInt(transform.position.z)
-        );
-
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshObstacle = GetComponent<NavMeshObstacle>();
+        
         state = StatesEnum.InActive;
 
         HP = maxHP;
@@ -54,20 +57,34 @@ public class Pawn : MonoBehaviour
         actionPoints = maxActionPoints;
         initiative = getInitiative();
 
+        navMeshAgent.enabled = false;
+        navMeshObstacle.enabled = true;
+
         if (team == TeamsEnum.Enemy)
         {
             AI = GetComponent<EnemyAI>();
         }
     }
 
-    public Vector3Int getPosition()
-    {
-        return cords;
-    }
-
     public int getInitiative()
     {
         return UnityEngine.Random.Range(1, 21);
+    }
+
+    private IEnumerator enableNavMeshAgent()
+    {
+        navMeshObstacle.enabled = false;
+        yield return null;
+        navMeshAgent.enabled = true;
+        yield break;
+    }
+
+    private IEnumerator enableNavMeshObstacle()
+    {
+        navMeshAgent.enabled = false;
+        yield return null;
+        navMeshObstacle.enabled = true;
+        yield break;
     }
 
     public void BeginTurn(Guid givenID)
@@ -76,9 +93,15 @@ public class Pawn : MonoBehaviour
         {
             return;
         }
+        
+        StartCoroutine(enableNavMeshAgent());
 
         state = StatesEnum.Active;
         movePoints = maxMovePoints;
+        movePointsRemaining = movePoints;
+        movePointsSpent = 0f;
+        previewMovePointsRemaining = movePoints;
+        previewMovePointsSpent = 0f;
         actionPoints = maxActionPoints;
 
         if (AI == null)
@@ -89,16 +112,63 @@ public class Pawn : MonoBehaviour
         AI.skipTurn();
     }
 
-    public void LookAtTarget(Vector3Int targetCords)
+    private float GetPathDistance(List<Vector3> pathToMeasure)
     {
-        Transform visualsTransform = transform.GetChild(0).GetComponent<Transform>();
+        float distance = 0f;
 
-        Vector3 tileCenter = new Vector3(
-                targetCords.x + 0.5f,
-                visualsTransform.position.y,
-                targetCords.z + 0.5f
-                );
+        for (int i = 0; i < pathToMeasure.Count - 1; i++)
+        {
+            distance += Vector3.Distance(pathToMeasure[i], pathToMeasure[i + 1]);
+        }
 
-        visualsTransform.LookAt(tileCenter);
+        return distance;
+    }
+
+    public IEnumerator MoveAlongPath()
+    {
+        if (path.Count == 0)
+        {
+            yield break;
+        }
+
+        float distanceTraveled = GetPathDistance(path);
+
+        state = StatesEnum.Busy;
+
+        while(path.Count != 0)
+        {
+            Vector3 targetPos = new Vector3(
+            path[0].x,
+            path[0].y,
+            path[0].z
+            );
+
+            navMeshAgent.SetDestination(targetPos);
+
+            if (Vector3.Distance(transform.position, targetPos) < 0.01f)
+            {
+                path.RemoveAt(0);
+            }
+
+            yield return null;
+        }
+
+        movePointsSpent += distanceTraveled;
+        movePoints = Mathf.Max(0f, movePoints - distanceTraveled);
+        movePointsRemaining = movePoints;
+        previewMovePointsRemaining = movePoints;
+        previewMovePointsSpent = 0f;
+
+        state = StatesEnum.Active;
+        gameEvents.HidePath(id);
+
+        yield break;
+    }
+
+    public void EndTurn()
+    {
+        StartCoroutine(enableNavMeshObstacle());
+
+        state = StatesEnum.InActive;
     }
 }
