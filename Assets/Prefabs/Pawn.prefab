@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4969734088140009936}
-  - component: {fileID: 6869134996873482478}
   m_Layer: 0
   m_Name: MovementArea
   m_TagString: Untagged
@@ -33,18 +32,6 @@ Transform:
   - {fileID: 3346378337752442477}
   m_Father: {fileID: 248595540686456089}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6869134996873482478
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1034007642432533831}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 838176a35e23ad44084d89d5e7b96d3b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MovementAreaOverlay
 --- !u!1 &1233873351889375691
 GameObject:
   m_ObjectHideFlags: 0
@@ -175,7 +162,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 248595540686456089}
-  - component: {fileID: 4507662644578055586}
   m_Layer: 0
   m_Name: Visuals
   m_TagString: Untagged
@@ -200,29 +186,6 @@ Transform:
   - {fileID: 4969734088140009936}
   m_Father: {fileID: 1637741564826464025}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!136 &4507662644578055586
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7180400190656862696}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.38
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0.8, z: 0}
 --- !u!1 &9160276902724688871
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,6 +199,7 @@ GameObject:
   - component: {fileID: 6114374158489276651}
   - component: {fileID: 8891511880760538088}
   - component: {fileID: 5125198740977293287}
+  - component: {fileID: 3596578748329310882}
   m_Layer: 0
   m_Name: Pawn
   m_TagString: Unit
@@ -277,14 +241,16 @@ MonoBehaviour:
   moveSpeed: 3
   maxMovePoints: 6
   maxActionPoints: 2
-  maxHP: 10
+  maxHP: 5
   SightDistance: 5
   accuracy: 5
+  attackDamage: 1
   defence: 50
+  evasion: 0
   pawnsInSight: []
   path: []
   state: 0
-  HP: 10
+  HP: 5
   movePoints: 5
   movePointsSpent: 0
   movePointsRemaining: 0
@@ -357,6 +323,29 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 1, z: 0}
   m_TimeToStationary: 0.5
+--- !u!136 &3596578748329310882
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9160276902724688871}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.38
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.8, z: 0}
 --- !u!1001 &2778257372820732514
 PrefabInstance:
   m_ObjectHideFlags: 0

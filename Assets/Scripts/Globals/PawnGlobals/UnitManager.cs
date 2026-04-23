@@ -5,12 +5,15 @@ using UnityEngine;
 public class UnitManager : MonoBehaviour
 {
     GameEvents gameEvents;
+    TurnManager turnManager;
     public Dictionary<Guid, GameObject> pawns;
 
     public void Initialize()
     {
         gameEvents = GameManager.gameEvents;
-        gameEvents.onKill += VictimDeletion;
+        turnManager = GameManager.turnManager;
+
+        gameEvents.onDeath += VictimDeletion;
 
         pawns = new Dictionary<Guid, GameObject>();
 
@@ -24,12 +27,11 @@ public class UnitManager : MonoBehaviour
         }
     }
 
-    public void VictimDeletion(Guid killerID, Guid victimID)
+    public void VictimDeletion(Guid victimID)
     {
+        turnManager.initiativeOrder.Remove(pawns[victimID]);
         pawns.Remove(victimID);
-        GameManager.turnManager.initiativeOrder.Remove(pawns[victimID]);
     }
 }
-
 
 

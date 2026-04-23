@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2716330570290639550}
   - component: {fileID: 8148698457227564199}
   m_Layer: 0
-  m_Name: TileOverlayCursour
+  m_Name: MapCursor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

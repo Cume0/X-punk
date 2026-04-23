@@ -28,7 +28,7 @@ public class EnemyButton : MonoBehaviour
     
     public void onButtonClick()
     {
-        gameEvents.AttackTrigger(AttackerID, DefenderID);
+        
     }
 
     void OnDisable()

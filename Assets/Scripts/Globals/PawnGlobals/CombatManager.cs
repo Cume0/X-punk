@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CombatManager : MonoBehaviour
@@ -8,75 +9,34 @@ public class CombatManager : MonoBehaviour
 
     UnitManager unitManager;
     GameEvents gameEvents;
-    MapManager mapManager;
     TurnManager turnManager;
-
     Pawn thisUnitData;
-    bool isThisUnitSelected;
 
     public void Initialize()
     {
         unitManager = GameManager.unitManager;
         gameEvents = GameManager.gameEvents;
-        mapManager = GameManager.mapManager;
         turnManager = GameManager.turnManager;
 
         gameEvents.onUnitSelection += UnitSelection;
-        gameEvents.onAttackTrigger += UnitAttaking;
+        gameEvents.onAttackTrigger += AttackCalculation;
     }
     
     public void UnitSelection(bool isUnitSelected, GameObject selectedUnit)
     {
         thisUnitData = selectedUnit.GetComponent<Pawn>();
-
-        isThisUnitSelected = isUnitSelected;
     }
 
-    public void UnitAttaking(Guid givenAttackerID, Guid givenDefenderID)
+    public void AttackCalculation(Guid givenAttackerID, List<GameObject> hittedTargets)
     {
-        if (thisUnitData == null || unitManager.pawns[givenDefenderID] == null) return;
-        
-        if (givenAttackerID == thisUnitData.id && isThisUnitSelected)
+        thisUnitData = unitManager.pawns[givenAttackerID].GetComponent<Pawn>();
+
+        foreach (GameObject target in hittedTargets)
         {
-            Pawn attackerData = unitManager.pawns[givenAttackerID].GetComponent<Pawn>();
-            Pawn defenderData = unitManager.pawns[givenDefenderID].GetComponent<Pawn>();
-
-            if (attackerData.actionPoints < 0)
+            if (target.TryGetComponent(out IDamageable damageable))
             {
-                return;
-            }
-
-            unitManager.pawns[givenAttackerID].transform.LookAt(unitManager.pawns[givenDefenderID].transform.position);
-
-            if (!calculateAttack(attackerData.accuracy, defenderData.defence))
-            {
-                return;
-            }
-
-            defenderData.HP--;
-            attackerData.actionPoints--;
-
-            print("HP of " + givenDefenderID + " is " + defenderData.HP);
-
-            if (defenderData.HP <= 0)
-            {
-                Destroy(unitManager.pawns[givenDefenderID].gameObject);
-
-                turnManager.initiativeOrder.Remove(unitManager.pawns[givenDefenderID]);
-                
-                gameEvents.kill(givenAttackerID, givenDefenderID);
+                damageable.TakeDamage(thisUnitData.attackDamage);
             }
         }
-    }
-
-    public bool calculateAttack(int Accuracy, int Defence)
-    {
-        if (UnityEngine.Random.Range(1, 101) + Accuracy < Defence)
-        {
-            print("Miss");
-            return false;
-        }
-        
-        return true;
     }
 }

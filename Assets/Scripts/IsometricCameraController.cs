@@ -1,10 +1,7 @@
-using System;
-using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class CameraController : MonoBehaviour
+public class IsometricCameraController : MonoBehaviour
 {
     private Vector3 trueMoveDirection;
     [SerializeField] private float _moveSpeed;
@@ -13,6 +10,17 @@ public class CameraController : MonoBehaviour
     [SerializeField] private InputActionReference _scrollY;
 
     [SerializeField] private float rotationOffset;
+
+    private Quaternion savedRotation;
+    private Vector3 savedPosition;
+
+    private bool isInitialized = false;
+
+    public void Initialize()
+    {
+        savedRotation = transform.rotation;
+        isInitialized = true;
+    }
 
     void Update()
     {
@@ -49,4 +57,16 @@ public class CameraController : MonoBehaviour
         }
     }
     
+    private void OnEnable()
+    {
+        if(isInitialized)
+        {
+            transform.rotation = savedRotation;
+        }
+    }
+
+    private void OnDisable()
+    {
+        savedRotation = transform.rotation;
+    }
 }

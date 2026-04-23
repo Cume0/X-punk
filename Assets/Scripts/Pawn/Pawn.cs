@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.AI;
 
-public class Pawn : MonoBehaviour
+public class Pawn : MonoBehaviour, IDamageable
 {
     [Header ("Identification")]
     [SerializeField] public Guid id;
@@ -20,7 +20,10 @@ public class Pawn : MonoBehaviour
     [SerializeField] public int maxHP;
     [SerializeField] public int SightDistance;
     [SerializeField] public int accuracy;
+    [SerializeField] public int attackDamage;    
     [SerializeField] public int defence; 
+    [SerializeField] public int evasion;
+
 
     public List<GameObject> pawnsInSight;
     public List<Vector3> path;
@@ -38,6 +41,8 @@ public class Pawn : MonoBehaviour
     GameEvents gameEvents;
     NavMeshAgent navMeshAgent;
     NavMeshObstacle navMeshObstacle;
+
+    int IDamageable.HP { get => HP; set => HP = value; }
 
     public void Initialize()
     {    
@@ -164,6 +169,17 @@ public class Pawn : MonoBehaviour
 
         yield break;
     }
+
+    public void TakeDamage(int damage)
+    {
+        print("Ouch!");
+        HP -= damage;
+        if (HP <= 0)
+        {
+            gameEvents.Die(id);
+            Destroy(gameObject);
+        }
+    } 
 
     public void EndTurn()
     {

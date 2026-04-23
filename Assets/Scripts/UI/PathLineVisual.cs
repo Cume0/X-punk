@@ -13,7 +13,6 @@ public class PathLineVisual : MonoBehaviour
         assignedPawnGuid = pawnGuid;
         lineRenderer = GetComponentInChildren<LineRenderer>();
         futurePosition = transform.GetChild(0).Find("FuturePosition");
-        print(futurePosition.position);
         HidePath();
     }
 

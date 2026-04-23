@@ -9,29 +9,35 @@ public class UIManager : MonoBehaviour
     [SerializeField] Transform menu;
     [SerializeField] Transform volume;
     [SerializeField] PathLineVisual pathLineVisual;
+    [SerializeField] GameObject mainCameraObject;
 
     GameEvents gameEvents;
 
-    GameObject battleUI;
+    IsometricCameraController isometricCameraController;
+    FirstPersonCameraController firstPersonCameraController;
+    Transform isometricCameraPosition;
+    GameObject TacticUI;
+    GameObject ShootingUI;
+    GameObject MapCursor;
     GameObject thisUnit;
     Pawn thisUnitData;
 
     bool AttackButtonPressed = false;
     bool isThisUnitSelected = false;
-    
+
     Dictionary<Guid, PathLineVisual> pathLineVisuals = new Dictionary<Guid, PathLineVisual>();
     public void Initialize()
     {
         gameEvents = GameManager.gameEvents;
 
-        gameEvents.onUnitSelection += UnitSelected;
-        gameEvents.onShowBattleUI += ShowBattleUI;
-        gameEvents.onHideBattleUI += HideBattleUI;
-        gameEvents.onKill += AfterKillUIRefresh;
+        gameEvents.onUnitSelection += UnitSelected;  
+        gameEvents.onEndTurnButtonPressed += EndTurnClear;          
+
+        gameEvents.onShowTacticUI += ShowTacticUI;
+        gameEvents.onHideTacticUI += HideTacticUI;
+
         gameEvents.onShowPath += ShowPath;
         gameEvents.onHidePath += HidePath;
-
-        gameEvents.onEndTurnButtonPressed += EndTurnClear;
 
         GameObject.Find("EndTurnButton").GetComponent<EndTurnButton>().Initialize();
 
@@ -43,8 +49,19 @@ public class UIManager : MonoBehaviour
             pathLineVisuals.Add(pawnData.id, pathLine);
         }
 
-        battleUI = GameObject.Find("BattleUI");
-        battleUI.SetActive(false);
+        TacticUI = GameObject.Find("TacticUI");
+        TacticUI.SetActive(false);
+        ShootingUI = GameObject.Find("ShootingUI");
+        ShootingUI.SetActive(false);
+
+        MapCursor = GameObject.Find("MapCursor");
+
+        isometricCameraController = mainCameraObject.GetComponent<IsometricCameraController>();
+        firstPersonCameraController = mainCameraObject.GetComponent<FirstPersonCameraController>();
+        isometricCameraPosition = GameObject.Find("IsometricCameraPosition").transform;
+
+        isometricCameraController.Initialize();
+        firstPersonCameraController.Initialize();
     }
 
     public void UnitSelected(bool isUnitSelected, GameObject selectedUnit)
@@ -55,30 +72,68 @@ public class UIManager : MonoBehaviour
 
         if (isUnitSelected)
         {
-            ShowBattleUI();
+            ShowTacticUI();
         }
         else
         {
-            HideBattleUI();
+            HideTacticUI();
         }
     }
 
-    public void ShowBattleUI()
+    public void ShowTacticUI()
     {
-        battleUI.SetActive(true);
+        TacticUI.SetActive(true);
     }
 
-    public void HideBattleUI()
+    public void HideTacticUI()
     {
         HideUnitsInSight();
         AttackButtonPressed = false;
-        battleUI.SetActive(false);
+        TacticUI.SetActive(false);
     }
 
-    private void AfterKillUIRefresh(Guid killerID, Guid victimID)
+    public void ShowShootingUI()
     {
-        HideBattleUI();
-        ShowBattleUI();
+        ShootingUI.SetActive(true);
+    }
+
+    public void HideShootingUI()
+    {
+        ShootingUI.SetActive(false);
+    }
+
+    public void EnterShootingUI()
+    {
+        ShowShootingUI();
+        HideTacticUI();
+
+        gameEvents.ShootingModeActivated();
+
+        mainCameraObject.transform.SetParent(thisUnit.transform.Find("FirstPersonCameraPosition"));
+
+        isometricCameraController.enabled = false;
+
+        firstPersonCameraController.playerBody = thisUnit.transform;
+        firstPersonCameraController.enabled = true;
+
+        MapCursor.SetActive(false);
+    }
+
+    public void ExitShootingUI()
+    {
+        HideShootingUI();
+        ShowTacticUI();
+        
+        gameEvents.ShootingModeDeactivated();
+
+        mainCameraObject.transform.SetParent(isometricCameraPosition);
+
+        isometricCameraController.enabled = true;
+
+        firstPersonCameraController.playerBody = null;
+        firstPersonCameraController.enabled = false;
+
+        MapCursor.SetActive(true);
     }
 
     public void toogleShowUnitsInRange()
@@ -151,7 +206,7 @@ public class UIManager : MonoBehaviour
 
     public void EndTurnClear()
     {
-        HideBattleUI();
+        HideTacticUI();
         HidePath(thisUnitData.id);
         thisUnitData.path.Clear();
     }

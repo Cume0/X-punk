@@ -9,12 +9,30 @@ public class GameEvents : MonoBehaviour
         
     }
 
-    public event Action<Guid, Guid> onAttackTrigger;
-    public void AttackTrigger(Guid AttackerID, Guid DefenderID)
+    public event Action<Guid, List<GameObject>> onAttackTrigger;
+    public void AttackTrigger(Guid AttackerID, List<GameObject> targets)
     {
         if (onAttackTrigger != null)
         {
-            onAttackTrigger(AttackerID, DefenderID);
+            onAttackTrigger(AttackerID, targets);
+        }
+    }
+
+    public event Action onShootingModeActivated;
+    public void ShootingModeActivated()
+    {
+        if (onShootingModeActivated != null)
+        {
+            onShootingModeActivated();
+        }
+    }
+
+    public event Action onShootingModeDeactivated;
+    public void ShootingModeDeactivated()
+    {
+        if (onShootingModeDeactivated != null)
+        {
+            onShootingModeDeactivated();
         }
     }
 
@@ -27,30 +45,48 @@ public class GameEvents : MonoBehaviour
         }
     }
 
-    public event Action onShowBattleUI;
-    public void ShowBattleUI()
+    public event Action onShowTacticUI;
+    public void ShowTacticUI()
     {
-        if (onShowBattleUI != null)
+        if (onShowTacticUI != null)
         {
-            onShowBattleUI();
+            onShowTacticUI();
         }
     }
 
-    public event Action onHideBattleUI;
-    public void HideBattleUI()
+    public event Action onHideTacticUI;
+    public void HideTacticUI()
     {
-        if (onHideBattleUI != null)
+        if (onHideTacticUI != null)
         {
-            onHideBattleUI();
+            onHideTacticUI();
         }
     }
 
-    public event Action<Guid, Guid> onKill;
-    public void kill(Guid killerID, Guid victimID)
+    public event Action onShowShootingUI;
+    public void ShowShootingUI()
     {
-        if (onKill != null)
+        if (onShowShootingUI != null)
         {
-            onKill(killerID, victimID);
+            onShowShootingUI();
+        }
+    }
+
+    public event Action onHideShootingUI;
+    public void HideShootingUI()
+    {
+        if (onHideShootingUI != null)
+        {
+            onHideShootingUI();
+        }
+    }
+
+    public event Action<Guid> onDeath;
+    public void Die(Guid victimID)
+    {
+        if (onDeath != null)
+        {
+            onDeath(victimID);
         }
     }
 

@@ -30,6 +30,8 @@ public class UnitController : MonoBehaviour
         gameEvents = GameManager.gameEvents;
 
         gameEvents.onEndTurnButtonPressed += EndTurnClear;
+        gameEvents.onShootingModeActivated += ActivateShootingMode;
+        gameEvents.onShootingModeDeactivated += DeactivateShootingMode;
 
         unitsPath = new NavMeshPath();
     }
@@ -171,6 +173,16 @@ public class UnitController : MonoBehaviour
         selectedUnitData.previewMovePointsSpent = spentMovePoints;
         print("Going to " + hit.point + ", preview remaining movePoints: " + remainingMovePoints);
         return path;
+    }
+
+    private void ActivateShootingMode()
+    {
+        enabled = false;
+    }
+
+    private void DeactivateShootingMode()
+    {
+        enabled = true;
     }
 
     private void EndTurnClear()

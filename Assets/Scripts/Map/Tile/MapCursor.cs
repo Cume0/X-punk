@@ -2,9 +2,14 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class TileCursour : MonoBehaviour
+public class MapCursor : MonoBehaviour
 {
     public LayerMask targetLayerMask;
+    GameEvents gameEvents;
+    public void Initialize()
+    {
+        gameEvents = GameManager.gameEvents;
+    }
     void Update()
     {
         Ray CursourRay = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
