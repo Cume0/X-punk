@@ -31,8 +31,8 @@ public class FirstPersonCameraController : MonoBehaviour
     {
         Vector2 lookVector = LookAction.action.ReadValue<Vector2>();
 
-        float mouseX = lookVector.x * mouseSensitivity * Time.deltaTime;
-        float mouseY = lookVector.y * mouseSensitivity * Time.deltaTime;
+        float mouseX = lookVector.x * mouseSensitivity;
+        float mouseY = lookVector.y * mouseSensitivity;
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -maxPitch, maxPitch);

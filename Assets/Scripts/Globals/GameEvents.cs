@@ -4,18 +4,10 @@ using UnityEngine;
 
 public class GameEvents : MonoBehaviour
 {
+    public static GameEvents current;
     public void Initialize()
     {
-        
-    }
-
-    public event Action<Guid, List<GameObject>> onAttackTrigger;
-    public void AttackTrigger(Guid AttackerID, List<GameObject> targets)
-    {
-        if (onAttackTrigger != null)
-        {
-            onAttackTrigger(AttackerID, targets);
-        }
+        current = this;
     }
 
     public event Action onShootingModeActivated;
@@ -80,6 +72,16 @@ public class GameEvents : MonoBehaviour
             onHideShootingUI();
         }
     }
+
+    public event Action<Guid, List<GameObject>> onAttackTrigger;
+    public void AttackTrigger(Guid AttackerID, List<GameObject> targets)
+    {
+        if (onAttackTrigger != null)
+        {
+            onAttackTrigger(AttackerID, targets);
+        }
+    }
+
 
     public event Action<Guid> onDeath;
     public void Die(Guid victimID)

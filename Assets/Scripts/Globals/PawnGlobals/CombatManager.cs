@@ -9,6 +9,7 @@ public class CombatManager : MonoBehaviour
 
     UnitManager unitManager;
     GameEvents gameEvents;
+
     TurnManager turnManager;
     Pawn thisUnitData;
 
@@ -35,7 +36,7 @@ public class CombatManager : MonoBehaviour
         {
             if (target.TryGetComponent(out IDamageable damageable))
             {
-                damageable.TakeDamage(thisUnitData.attackDamage);
+                damageable.TakeDamage(thisUnitData.weaponInfo.attackDamage);
             }
         }
     }

@@ -17,13 +17,4 @@ public class EndTurnButton : MonoBehaviour
     {
         gameEvents.EndTurn();
     }
-
-    void OnEnable()
-    {
-        button.onClick.AddListener(onButtonClick);
-    }
-    void OnDisable()
-    {
-        button.onClick.RemoveListener(onButtonClick);
-    }
 }

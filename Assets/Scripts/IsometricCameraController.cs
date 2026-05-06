@@ -12,7 +12,6 @@ public class IsometricCameraController : MonoBehaviour
     [SerializeField] private float rotationOffset;
 
     private Quaternion savedRotation;
-    private Vector3 savedPosition;
 
     private bool isInitialized = false;
 
@@ -41,7 +40,7 @@ public class IsometricCameraController : MonoBehaviour
         trueMoveDirection = new Vector3(moveDirection.x, 0, moveDirection.y);
         trueMoveDirection = Quaternion.Euler(0, rotationOffset, 0) * trueMoveDirection;
 
-        transform.Translate(trueMoveDirection * _moveSpeed * Time.deltaTime, Space.World);
+        transform.parent.Translate(trueMoveDirection * _moveSpeed * Time.deltaTime, Space.World);
     }
 
     private void HandleVerticalMovement()

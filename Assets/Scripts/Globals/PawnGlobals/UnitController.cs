@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 
 public class UnitController : MonoBehaviour
 {
+    UnitController current;
     [SerializeField] InputActionReference selectAction;
     [SerializeField] InputActionReference moveAction;
     [SerializeField] InputActionReference menuAction;
@@ -15,6 +16,7 @@ public class UnitController : MonoBehaviour
 
     Ray CameraRay; //raycastontainer
     RaycastHit hit; //raycast target container for default raycast
+    RaycastHit pathHit; //raycast target container for path raycast
     RaycastHit moveHit; //raycast target container for move raycast
 
     StatesEnum states;
@@ -24,9 +26,12 @@ public class UnitController : MonoBehaviour
     GameObject selectedUnit;
     Pawn selectedUnitData;
     NavMeshPath unitsPath;
+    List<Vector3> pathCorners;
 
     public void Initialize()
     {
+        current = this;
+        
         gameEvents = GameManager.gameEvents;
 
         gameEvents.onEndTurnButtonPressed += EndTurnClear;
@@ -73,11 +78,10 @@ public class UnitController : MonoBehaviour
             selectedUnit = hit.transform.gameObject;
             selectedUnitData = hit.transform.GetComponent<Pawn>();
 
-            if (selectedUnitData.state == StatesEnum.Busy || selectedUnitData.state == StatesEnum.InActive ||selectedUnitData.team == TeamsEnum.Enemy)
+            if (selectedUnitData.state == StatesEnum.Busy || selectedUnitData.state == StatesEnum.InActive ||selectedUnitData.pawnInfo.team == TeamsEnum.Enemy)
             {
                 return;
             }
-
             if (selectedUnit.Equals(previousSelectedUnit) && isUnitSelected)
             {
                 isUnitSelected = false;
@@ -94,7 +98,9 @@ public class UnitController : MonoBehaviour
     public void unitMover()
     {
         bool hasHit = Physics.Raycast(CameraRay, out hit);
-        if (!hasHit)
+        if (!hasHit || !Physics.Raycast(CameraRay, out pathHit, Mathf.Infinity, LayerMask.GetMask("Terrain"))
+        || selectedUnitData.state == StatesEnum.Busy || selectedUnitData.state == StatesEnum.InActive
+        || selectedUnitData.movePoints <= 0.1f)
         {
             return;
         }
@@ -108,11 +114,13 @@ public class UnitController : MonoBehaviour
         }
 
         isUnitReadyToGo = true;
-        selectedUnitData.path = GetReachablePath();
-        gameEvents.ShowPath(selectedUnitData.id, hit.point, selectedUnitData.path);
+        selectedUnitData.finalPathPoint = GetReachablePath();
+        selectedUnitData.path = unitsPath;
+        selectedUnitData.pathCorners = pathCorners;
+        gameEvents.ShowPath(selectedUnitData.id, hit.point, selectedUnitData.pathCorners);
     }
 
-    public List<Vector3> GetReachablePath()
+    public Vector3 GetReachablePath()
     {   
         Physics.Raycast(CameraRay, out hit);
 
@@ -125,7 +133,8 @@ public class UnitController : MonoBehaviour
             print("invalid path to " + hit.point);
             selectedUnitData.previewMovePointsRemaining = availableMovePoints;
             selectedUnitData.previewMovePointsSpent = 0f;
-            return new List<Vector3>();
+            pathCorners = new List<Vector3>();
+            return new Vector3();
         }
         
         Vector3[] corners = unitsPath.corners;
@@ -135,12 +144,13 @@ public class UnitController : MonoBehaviour
             print("path is empty");
             selectedUnitData.previewMovePointsRemaining = availableMovePoints;
             selectedUnitData.previewMovePointsSpent = 0f;
-            return new List<Vector3>();
+            pathCorners = new List<Vector3>();
+            return new Vector3();
         }
-
+        
         List<Vector3> path = new List<Vector3>();
-        path.Add(corners[0]);
 
+        path.Add(corners[0]);
         for (int i = 0; i < corners.Length - 1; i++)
         {
             float segmentLength = Vector3.Distance(corners[i], corners[i + 1]);
@@ -154,7 +164,9 @@ public class UnitController : MonoBehaviour
                 selectedUnitData.previewMovePointsRemaining = remainingMovePoints;
                 selectedUnitData.previewMovePointsSpent = spentMovePoints;
                 print("Too far, preview remaining movePoints: " + remainingMovePoints);
-                return path;
+                pathCorners = path;
+                
+                return path.Last();
             }
 
             path.Add(corners[i + 1]);
@@ -165,14 +177,16 @@ public class UnitController : MonoBehaviour
             {
                 selectedUnitData.previewMovePointsRemaining = remainingMovePoints;
                 selectedUnitData.previewMovePointsSpent = spentMovePoints;
-                return path;
+                pathCorners = path;
+                return path.Last();
             }
         }
 
         selectedUnitData.previewMovePointsRemaining = remainingMovePoints;
         selectedUnitData.previewMovePointsSpent = spentMovePoints;
         print("Going to " + hit.point + ", preview remaining movePoints: " + remainingMovePoints);
-        return path;
+        pathCorners = path;
+        return path.Last();
     }
 
     private void ActivateShootingMode()

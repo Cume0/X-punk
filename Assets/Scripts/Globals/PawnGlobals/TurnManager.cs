@@ -1,15 +1,29 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
+
+public struct InitiativeData
+{
+    public Guid id;
+    public int initiative;
+    public GameObject unit;
+
+    public InitiativeData(Guid id, int initiative, GameObject unit)
+    {
+        this.id = id;
+        this.initiative = initiative;
+        this.unit = unit;
+    }
+}
 
 public class TurnManager : MonoBehaviour
 {
     public int currentTurn = 0;
     public int currentRound = 0;
-    GameObject currentActivePawn;
-    public Dictionary<GameObject, int> initiativeOrder;
+    Guid currentActivePawnId;
+    public List<InitiativeData> initiativeOrder;
 
     GameEvents gameEvents;
     UnitManager unitManager;
@@ -20,19 +34,24 @@ public class TurnManager : MonoBehaviour
 
         gameEvents.onEndTurnButtonPressed += turnShift;
 
-        initiativeOrder = new Dictionary<GameObject, int>();
+        initiativeOrder = new List<InitiativeData>();
         foreach (GameObject unit in unitManager.pawns.Values)
         {
-            initiativeOrder.Add(unit, unit.GetComponent<Pawn>().getInitiative());
-            print(unit.GetComponent<Pawn>().name + " " + initiativeOrder[unit]);
+            initiativeOrder.Add(new InitiativeData(unit.GetComponent<Pawn>().id, unit.GetComponent<Pawn>().getInitiative(), unit));
+            print(unit.GetComponent<Pawn>().name + " " + initiativeOrder[initiativeOrder.Count - 1].initiative);
         }
 
-        currentActivePawn = initiativeOrder.OrderBy(n => n.Value).First().Key;
-        currentActivePawn.GetComponent<Pawn>().state = StatesEnum.Active;
-        gameEvents.PawnsTurn(currentActivePawn.GetComponent<Pawn>().id);
+        currentActivePawnId = initiativeOrder.OrderByDescending(n => n.initiative).Select(n => n.id).First();
+        unitManager.pawns[currentActivePawnId].GetComponent<Pawn>().state = StatesEnum.Active;
+        gameEvents.PawnsTurn(currentActivePawnId);
     }
 
     public void turnShift()
+    {
+        StartCoroutine(turnShiftRoutine());
+    }
+
+    private IEnumerator turnShiftRoutine()
     {
         currentTurn++;
 
@@ -40,13 +59,14 @@ public class TurnManager : MonoBehaviour
         {
             currentRound++;
             currentTurn = 0;
-            print("Round " + currentRound);
         }
-        print("turn " + currentTurn);
 
-        currentActivePawn.GetComponent<Pawn>().EndTurn();
-        currentActivePawn = initiativeOrder.OrderBy(n => n.Value).Select(n => n.Key).ElementAt(currentTurn);
+        if (unitManager.pawns.ContainsKey(currentActivePawnId))
+        {
+            yield return StartCoroutine(unitManager.pawns[currentActivePawnId].GetComponent<Pawn>().EndTurn());
+        }
 
-        gameEvents.PawnsTurn(currentActivePawn.GetComponent<Pawn>().id);
+        currentActivePawnId = initiativeOrder.ElementAt(currentTurn).id;
+        gameEvents.PawnsTurn(currentActivePawnId);
     }
 }

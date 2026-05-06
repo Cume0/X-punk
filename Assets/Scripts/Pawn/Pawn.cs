@@ -3,44 +3,34 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.AI;
+using Unity.VisualScripting;
 
 public class Pawn : MonoBehaviour, IDamageable
 {
-    [Header ("Identification")]
-    [SerializeField] public Guid id;
-    [SerializeField] public TeamsEnum team;
-    [SerializeField] private string pawnName;
-
-    [Header ("Movement")]
-    [SerializeField] public int moveSpeed;
-    [SerializeField] public int maxMovePoints;
-
-    [Header ("Combat")]
-    [SerializeField] public int maxActionPoints;
-    [SerializeField] public int maxHP;
-    [SerializeField] public int SightDistance;
-    [SerializeField] public int accuracy;
-    [SerializeField] public int attackDamage;    
-    [SerializeField] public int defence; 
-    [SerializeField] public int evasion;
-
-
-    public List<GameObject> pawnsInSight;
-    public List<Vector3> path;
+    public Guid id;
+    public PawnInfo pawnInfo;
+    public WeaponInfo weaponInfo;
+    
+    [HideInInspector] public NavMeshPath path;
+    [HideInInspector] public List<Vector3> pathCorners;
+    [HideInInspector] public Vector3 finalPathPoint;
     public StatesEnum state;
-    public int HP;
+    int HP;
     public float movePoints;
-    public float movePointsSpent;
-    public float movePointsRemaining;
-    public float previewMovePointsSpent;
-    public float previewMovePointsRemaining;
-    public int actionPoints;
-    public int initiative;
+    [HideInInspector] public float movePointsSpent;
+    [HideInInspector] public float movePointsRemaining;
+    [HideInInspector] public float previewMovePointsSpent;
+    [HideInInspector] public float previewMovePointsRemaining;
+    [HideInInspector] public int actionPoints;
+    [HideInInspector] public int initiative;
 
-    EnemyAI AI;
     GameEvents gameEvents;
-    NavMeshAgent navMeshAgent;
-    NavMeshObstacle navMeshObstacle;
+    EnemyAI AI;
+    SphereCollider DetectionRadius;
+    [HideInInspector] public NavMeshAgent navMeshAgent;
+    [HideInInspector] NavMeshObstacle navMeshObstacle;
+    [HideInInspector] AnimatorController animatorController;
+    [HideInInspector] public GameObject selectedUnitSelectionSign;
 
     int IDamageable.HP { get => HP; set => HP = value; }
 
@@ -50,25 +40,33 @@ public class Pawn : MonoBehaviour, IDamageable
 
         gameEvents = GameManager.gameEvents;
 
+        selectedUnitSelectionSign = transform.GetChild(0).Find("SelectionSign").gameObject;
+        selectedUnitSelectionSign.SetActive(false);
+
         gameEvents.onPawnsTurn += BeginTurn;
 
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshObstacle = GetComponent<NavMeshObstacle>();
-        
+        animatorController = GetComponentInChildren<AnimatorController>();
+
+        animatorController.Initialize(navMeshAgent);
+
         state = StatesEnum.InActive;
 
-        HP = maxHP;
-        movePoints = maxMovePoints;
-        actionPoints = maxActionPoints;
+        HP = pawnInfo.maxHP;
+        movePoints = pawnInfo.maxMovePoints;
+        actionPoints = pawnInfo.maxActionPoints;
         initiative = getInitiative();
 
         navMeshAgent.enabled = false;
         navMeshObstacle.enabled = true;
 
-        if (team == TeamsEnum.Enemy)
+        if (gameObject.TryGetComponent<EnemyAI>(out EnemyAI enemyAI))
         {
-            AI = GetComponent<EnemyAI>();
-        }
+            DetectionRadius = GetComponentInChildren<SphereCollider>();
+            AI = enemyAI;
+            enemyAI.Initialize(pawnInfo, weaponInfo, this);
+        } 
     }
 
     public int getInitiative()
@@ -80,16 +78,8 @@ public class Pawn : MonoBehaviour, IDamageable
     {
         navMeshObstacle.enabled = false;
         yield return null;
+        if (this == null || gameObject == null) yield break;
         navMeshAgent.enabled = true;
-        yield break;
-    }
-
-    private IEnumerator enableNavMeshObstacle()
-    {
-        navMeshAgent.enabled = false;
-        yield return null;
-        navMeshObstacle.enabled = true;
-        yield break;
     }
 
     public void BeginTurn(Guid givenID)
@@ -102,19 +92,18 @@ public class Pawn : MonoBehaviour, IDamageable
         StartCoroutine(enableNavMeshAgent());
 
         state = StatesEnum.Active;
-        movePoints = maxMovePoints;
+        movePoints = pawnInfo.maxMovePoints;
         movePointsRemaining = movePoints;
         movePointsSpent = 0f;
         previewMovePointsRemaining = movePoints;
         previewMovePointsSpent = 0f;
-        actionPoints = maxActionPoints;
+        actionPoints = pawnInfo.maxActionPoints;
 
-        if (AI == null)
+        if (AI != null)
         {
-            return;
+            print("Lets get some");
+            AI.BeginTurn();
         }
-
-        AI.skipTurn();
     }
 
     private float GetPathDistance(List<Vector3> pathToMeasure)
@@ -131,33 +120,23 @@ public class Pawn : MonoBehaviour, IDamageable
 
     public IEnumerator MoveAlongPath()
     {
-        if (path.Count == 0)
+        if (path == null)
         {
             yield break;
         }
 
-        float distanceTraveled = GetPathDistance(path);
+        float distanceTraveled = GetPathDistance(pathCorners);
 
         state = StatesEnum.Busy;
 
-        while(path.Count != 0)
+        navMeshAgent.SetPath(path);
+
+        while ((transform.position - finalPathPoint).magnitude > 0.1f)
         {
-            Vector3 targetPos = new Vector3(
-            path[0].x,
-            path[0].y,
-            path[0].z
-            );
-
-            navMeshAgent.SetDestination(targetPos);
-
-            if (Vector3.Distance(transform.position, targetPos) < 0.01f)
-            {
-                path.RemoveAt(0);
-            }
-
             yield return null;
         }
 
+        navMeshAgent.ResetPath();
         movePointsSpent += distanceTraveled;
         movePoints = Mathf.Max(0f, movePoints - distanceTraveled);
         movePointsRemaining = movePoints;
@@ -181,10 +160,18 @@ public class Pawn : MonoBehaviour, IDamageable
         }
     } 
 
-    public void EndTurn()
-    {
-        StartCoroutine(enableNavMeshObstacle());
+    public Guid guid { get => id; }
 
+    public IEnumerator EndTurn()
+    {
+        if (!navMeshAgent.enabled || !navMeshAgent.isOnNavMesh)
+        {
+            yield break;
+        }
+        navMeshAgent.ResetPath();
+        navMeshAgent.enabled = false;
+        yield return null;
+        navMeshObstacle.enabled = true;
         state = StatesEnum.InActive;
     }
 }

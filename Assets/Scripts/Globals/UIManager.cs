@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
@@ -15,14 +16,15 @@ public class UIManager : MonoBehaviour
 
     IsometricCameraController isometricCameraController;
     FirstPersonCameraController firstPersonCameraController;
+
     Transform isometricCameraPosition;
     GameObject TacticUI;
     GameObject ShootingUI;
     GameObject MapCursor;
+
     GameObject thisUnit;
     Pawn thisUnitData;
 
-    bool AttackButtonPressed = false;
     bool isThisUnitSelected = false;
 
     Dictionary<Guid, PathLineVisual> pathLineVisuals = new Dictionary<Guid, PathLineVisual>();
@@ -69,6 +71,7 @@ public class UIManager : MonoBehaviour
         thisUnit = selectedUnit;
         thisUnitData = selectedUnit.GetComponent<Pawn>();
         isThisUnitSelected = isUnitSelected;
+        thisUnitData.selectedUnitSelectionSign.SetActive(isUnitSelected);
 
         if (isUnitSelected)
         {
@@ -78,28 +81,6 @@ public class UIManager : MonoBehaviour
         {
             HideTacticUI();
         }
-    }
-
-    public void ShowTacticUI()
-    {
-        TacticUI.SetActive(true);
-    }
-
-    public void HideTacticUI()
-    {
-        HideUnitsInSight();
-        AttackButtonPressed = false;
-        TacticUI.SetActive(false);
-    }
-
-    public void ShowShootingUI()
-    {
-        ShootingUI.SetActive(true);
-    }
-
-    public void HideShootingUI()
-    {
-        ShootingUI.SetActive(false);
     }
 
     public void EnterShootingUI()
@@ -127,65 +108,13 @@ public class UIManager : MonoBehaviour
         gameEvents.ShootingModeDeactivated();
 
         mainCameraObject.transform.SetParent(isometricCameraPosition);
+        mainCameraObject.transform.localPosition = Vector3.zero;
 
         isometricCameraController.enabled = true;
 
-        firstPersonCameraController.playerBody = null;
         firstPersonCameraController.enabled = false;
 
         MapCursor.SetActive(true);
-    }
-
-    public void toogleShowUnitsInRange()
-    {
-        AttackButtonPressed = !AttackButtonPressed;
-
-        if (AttackButtonPressed)
-        {
-            ShowUnitsInSight();
-        }
-        else
-        {
-            HideUnitsInSight();
-        }
-    }
-
-    public void ShowUnitsInSight()
-    {
-        HideUnitsInSight();
-
-        int thisUnitSightRange = thisUnitData.SightDistance;
-
-        foreach (GameObject unit in GameManager.unitManager.pawns.Values)
-        {
-            if ( Vector3.Distance(thisUnit.transform.position, unit.transform.position) < thisUnitSightRange && 
-                !unit.Equals(thisUnit) && 
-                unit.GetComponent<Pawn>().team == TeamsEnum.Enemy )
-            {
-                thisUnitData.pawnsInSight.Add(unit);
-
-                var enemyOnButton = Instantiate(enemyButton, enemyBar, false);
-                enemyOnButton.Initialize(thisUnitData.id, unit.GetComponent<Pawn>().id);
-            }
-        }
-    }
-
-    public void HideUnitsInSight()
-    {
-        if (thisUnitData.pawnsInSight.Count != 0)
-        {
-            thisUnitData.pawnsInSight.Clear();
-        }
-
-        if (enemyBar.childCount == 0)
-        {
-            return;
-        }
-
-        for (int childIndex = 0; childIndex < enemyBar.childCount; childIndex++)
-        {
-            Destroy(enemyBar.transform.GetChild(childIndex).gameObject);
-        }
     }
 
     private void ShowPath(Guid guid, Vector3 FuturePositionCords, List<Vector3> path)
@@ -204,11 +133,31 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void ShowTacticUI()
+    {
+        TacticUI.SetActive(true);
+    }
+    public void HideTacticUI()
+    {
+        TacticUI.SetActive(false);
+    }
+    public void ShowShootingUI()
+    {
+        ShootingUI.SetActive(true);
+    }
+    public void HideShootingUI()
+    {
+        ShootingUI.SetActive(false);
+    }
+
     public void EndTurnClear()
     {
         HideTacticUI();
-        HidePath(thisUnitData.id);
-        thisUnitData.path.Clear();
+        if (thisUnitData != null)
+        {
+            HidePath(thisUnitData.id);
+            thisUnitData.selectedUnitSelectionSign.SetActive(false);
+        }
     }
     public void Exit()
     {

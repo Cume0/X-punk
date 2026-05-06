@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class UnitManager : MonoBehaviour
@@ -28,10 +29,15 @@ public class UnitManager : MonoBehaviour
     }
 
     public void VictimDeletion(Guid victimID)
-    {
-        turnManager.initiativeOrder.Remove(pawns[victimID]);
+    {  
+        int victimIndex = turnManager.initiativeOrder.FindIndex(x => x.id == victimID);
+
+        if (victimIndex < turnManager.currentTurn)
+        {
+            turnManager.currentTurn--;
+        }
+
+        turnManager.initiativeOrder.Remove(turnManager.initiativeOrder.FirstOrDefault(x => x.id == victimID));
         pawns.Remove(victimID);
     }
 }
-
-

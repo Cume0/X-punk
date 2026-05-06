@@ -6,25 +6,26 @@ public class ShootingController : MonoBehaviour
 {
     [SerializeField] InputActionReference shootAction;
     [SerializeField] InputActionReference aimAction;
-    
+    [SerializeField] InputActionReference cancelAction;
     GameEvents gameEvents;
 
     GameObject selectedUnit;
     Pawn selectedUnitData;
     List<GameObject> hittedTargets;
-
+    List<Ray> attackRays;
     Ray ShootingRay;
     RaycastHit hitInfo;
 
     public void Initialize()
     {
         gameEvents = GameManager.gameEvents;
-
+        
         gameEvents.onUnitSelection += UnitSelected;
         gameEvents.onShootingModeActivated += ActivateShootingMode;
         gameEvents.onShootingModeDeactivated += DeactivateShootingMode;
 
         hittedTargets = new List<GameObject>();
+        attackRays = new List<Ray>();
 
         enabled = false;
     }
@@ -34,7 +35,7 @@ public class ShootingController : MonoBehaviour
         if (shootAction.action.WasPerformedThisFrame())
         {
             hittedTargets.Clear();
-
+            
             ShootingRay = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
             Debug.DrawRay(ShootingRay.origin, ShootingRay.direction * 100f, Color.red, 10f);
 
@@ -55,6 +56,11 @@ public class ShootingController : MonoBehaviour
         else
         {
             Camera.main.fieldOfView = Mathf.Lerp(Camera.main.fieldOfView, 80f, Time.deltaTime * 5f);
+        }
+        
+        if (cancelAction.action.WasPerformedThisFrame())
+        {
+            GameManager.UIManager.ExitShootingUI();
         }
     }
 
