@@ -11,18 +11,18 @@ public class SightTriggerProxy : MonoBehaviour
         pawnsInSight = new List<GameObject>();
         coverPositionsInSight = new List<Transform>();
     }
-
+//
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"Trigger entered by: {other.gameObject.name}, layer: {LayerMask.LayerToName(other.gameObject.layer)}");
-
         if (other.gameObject.layer == LayerMask.NameToLayer("PlayerUnits"))
         {
+            Debug.Log($"Trigger entered by: {other.gameObject.name}, layer: {LayerMask.LayerToName(other.gameObject.layer)}");
             pawnsInSight.Add(other.gameObject);
         }
 
         if (other.gameObject.layer == LayerMask.NameToLayer("PossibleCover"))
         {
+            Debug.Log($"Trigger entered by: {other.gameObject.name}, layer: {LayerMask.LayerToName(other.gameObject.layer)}");
             coverPositionsInSight.Add(other.gameObject.transform);
         }
     }

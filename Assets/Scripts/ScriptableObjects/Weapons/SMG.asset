@@ -15,3 +15,4 @@ MonoBehaviour:
   weaponName: Type-84 'Drache'
   attackDamage: 10
   accuracy: 3
+  attackSpeed: 3

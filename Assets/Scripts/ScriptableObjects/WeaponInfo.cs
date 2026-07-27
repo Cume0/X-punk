@@ -11,4 +11,5 @@ public class WeaponInfo : ScriptableObject
     [Header("Combat")]
     public int attackDamage;
     public int accuracy;
+    public int attackSpeed;
 }

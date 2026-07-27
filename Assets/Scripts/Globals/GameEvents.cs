@@ -10,6 +10,8 @@ public class GameEvents : MonoBehaviour
         current = this;
     }
 
+
+    //Shooting Mode Activation Events
     public event Action onShootingModeActivated;
     public void ShootingModeActivated()
     {
@@ -37,6 +39,7 @@ public class GameEvents : MonoBehaviour
         }
     }
 
+    //Tactics UI Events
     public event Action onShowTacticUI;
     public void ShowTacticUI()
     {
@@ -54,7 +57,7 @@ public class GameEvents : MonoBehaviour
             onHideTacticUI();
         }
     }
-
+    //Shooting UI Events
     public event Action onShowShootingUI;
     public void ShowShootingUI()
     {
@@ -73,6 +76,7 @@ public class GameEvents : MonoBehaviour
         }
     }
 
+    //Comabat Events
     public event Action<Guid, List<GameObject>> onAttackTrigger;
     public void AttackTrigger(Guid AttackerID, List<GameObject> targets)
     {
@@ -92,6 +96,7 @@ public class GameEvents : MonoBehaviour
         }
     }
 
+    //Turn Events
     public event Action onEndTurnButtonPressed;
     public void EndTurn()
     {
@@ -110,6 +115,7 @@ public class GameEvents : MonoBehaviour
         }
     }
 
+    //Pathfinding Events
     public event Action<Guid, Vector3, List<Vector3>> onShowPath;
     public void ShowPath(Guid ID, Vector3 FuturePositionCords, List<Vector3> path)
     {
@@ -127,4 +133,6 @@ public class GameEvents : MonoBehaviour
             onHidePath(ID);
         }
     }
+
+    
 }

@@ -21,10 +21,18 @@ public class CombatManager : MonoBehaviour
 
         gameEvents.onUnitSelection += UnitSelection;
         gameEvents.onAttackTrigger += AttackCalculation;
+
+        gameEvents.onEndTurnButtonPressed += EndTurnClear;
     }
     
     public void UnitSelection(bool isUnitSelected, GameObject selectedUnit)
     {
+        if (isUnitSelected == false)
+        {
+            thisUnitData = null;
+            return;
+            
+        }
         thisUnitData = selectedUnit.GetComponent<Pawn>();
     }
 
@@ -39,5 +47,10 @@ public class CombatManager : MonoBehaviour
                 damageable.TakeDamage(thisUnitData.weaponInfo.attackDamage);
             }
         }
+    }
+
+    private void EndTurnClear()
+    {
+        thisUnitData = null;
     }
 }

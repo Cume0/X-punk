@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     //Units
     public static CombatManager combatManager;
     public static UnitController unitController;
+    public static NavigationManager navigationManager;
     public static ShootingController shootingController;
     public static UnitManager unitManager;
     public static TurnManager turnManager;
@@ -32,6 +33,7 @@ public class GameManager : MonoBehaviour
         turnManager = FindAnyObjectByType<TurnManager>();
 
         unitController = FindAnyObjectByType<UnitController>();
+        navigationManager = FindAnyObjectByType<NavigationManager>();
         shootingController = FindAnyObjectByType<ShootingController>();
 
         UIManager = FindAnyObjectByType<UIManager>();
@@ -44,6 +46,7 @@ public class GameManager : MonoBehaviour
         turnManager.Initialize();
 
         unitController.Initialize();
+        navigationManager.Initialize();
         shootingController.Initialize();
         
         UIManager.Initialize();

@@ -32,21 +32,33 @@ public class ShootingController : MonoBehaviour
 
     public void Update()
     {
+        if (selectedUnitData == null)
+        {
+            return;
+        }
+
         if (shootAction.action.WasPerformedThisFrame())
         {
+            if (selectedUnitData.actionPoints <= 0)
+            {
+                print("No action points left");
+                return;
+            }
+
             hittedTargets.Clear();
             
             ShootingRay = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
             Debug.DrawRay(ShootingRay.origin, ShootingRay.direction * 100f, Color.red, 10f);
 
-            if (!Physics.Raycast(ShootingRay, out hitInfo))
+            if (!Physics.Raycast(ShootingRay, out hitInfo)) //
             {
                 return;
             }
             hittedTargets.Add(hitInfo.collider.gameObject);
             
             gameEvents.AttackTrigger(selectedUnitData.id, hittedTargets);
-            
+
+            selectedUnitData.actionPoints--;
         }
 
         if (aimAction.action.IsPressed())
@@ -66,7 +78,7 @@ public class ShootingController : MonoBehaviour
 
     private void UnitSelected(bool isUnitSelected, GameObject selectedUnit)
     {
-        if (isUnitSelected)
+        if (isUnitSelected && selectedUnit != null)
         {
             this.selectedUnit = selectedUnit;
             selectedUnitData = selectedUnit.GetComponent<Pawn>();

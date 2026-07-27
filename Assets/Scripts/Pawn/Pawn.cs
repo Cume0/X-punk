@@ -21,6 +21,7 @@ public class Pawn : MonoBehaviour, IDamageable
     [HideInInspector] public float movePointsRemaining;
     [HideInInspector] public float previewMovePointsSpent;
     [HideInInspector] public float previewMovePointsRemaining;
+    [HideInInspector] public int maxActionPoints;
     [HideInInspector] public int actionPoints;
     [HideInInspector] public int initiative;
 
@@ -50,12 +51,14 @@ public class Pawn : MonoBehaviour, IDamageable
         animatorController = GetComponentInChildren<AnimatorController>();
 
         animatorController.Initialize(navMeshAgent);
+        path = new NavMeshPath();
 
         state = StatesEnum.InActive;
 
         HP = pawnInfo.maxHP;
         movePoints = pawnInfo.maxMovePoints;
-        actionPoints = pawnInfo.maxActionPoints;
+        maxActionPoints = pawnInfo.maxActionPoints;
+        actionPoints = maxActionPoints;
         initiative = getInitiative();
 
         navMeshAgent.enabled = false;
@@ -97,13 +100,19 @@ public class Pawn : MonoBehaviour, IDamageable
         movePointsSpent = 0f;
         previewMovePointsRemaining = movePoints;
         previewMovePointsSpent = 0f;
-        actionPoints = pawnInfo.maxActionPoints;
+        actionPoints = maxActionPoints;
 
         if (AI != null)
         {
             print("Lets get some");
-            AI.BeginTurn();
+            StartCoroutine(BeginAITurn());
         }
+    }
+
+    private IEnumerator BeginAITurn()
+    {
+        yield return enableNavMeshAgent();
+        AI.BeginTurn();
     }
 
     private float GetPathDistance(List<Vector3> pathToMeasure)
@@ -151,7 +160,7 @@ public class Pawn : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage)
     {
-        print("Ouch!");
+        print("Ouch! I only have" + HP );
         HP -= damage;
         if (HP <= 0)
         {
@@ -164,6 +173,7 @@ public class Pawn : MonoBehaviour, IDamageable
 
     public IEnumerator EndTurn()
     {
+        print("Im done");
         if (!navMeshAgent.enabled || !navMeshAgent.isOnNavMesh)
         {
             yield break;

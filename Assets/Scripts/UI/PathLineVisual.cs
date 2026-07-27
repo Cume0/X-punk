@@ -5,22 +5,44 @@ using UnityEngine;
 
 public class PathLineVisual : MonoBehaviour
 {
-    Guid assignedPawnGuid;
+    GameEvents gameEvents;
     LineRenderer lineRenderer;
     Transform futurePosition;
+
+    Guid assignedPawnGuid;
+
+    Vector3 FuturePositionCords;
+    List<Vector3> path;
     public void Initialize(Guid pawnGuid)
     {
+        gameEvents = GameManager.gameEvents;
+
         assignedPawnGuid = pawnGuid;
         lineRenderer = GetComponentInChildren<LineRenderer>();
         futurePosition = transform.GetChild(0).Find("FuturePosition");
         HidePath();
+
+        enabled = false;
     }
 
-    public void ShowPath(Vector3 GivenFuturePositionCords, List<Vector3> path)
+    public void Update()
+    {
+        UpdatePathVisual();
+    }
+
+    public void ShowPath(Vector3 GivenFuturePositionCords, List<Vector3> GivenPath)
+    {
+        FuturePositionCords = GivenFuturePositionCords;
+        path = GivenPath;
+        
+        enabled = true;
+    }
+
+    public void UpdatePathVisual()
     {
         transform.GetChild(0).gameObject.SetActive(true);
         
-        futurePosition.position = GivenFuturePositionCords;
+        futurePosition.position = FuturePositionCords;
         renderLine(path);
     }
 
