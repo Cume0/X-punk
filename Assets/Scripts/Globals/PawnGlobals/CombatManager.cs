@@ -20,20 +20,20 @@ public class CombatManager : MonoBehaviour
         turnManager = GameManager.turnManager;
 
         gameEvents.onUnitSelection += UnitSelection;
+        gameEvents.onUnitDeselection += UnitDeselection;
         gameEvents.onAttackTrigger += AttackCalculation;
 
-        gameEvents.onEndTurnButtonPressed += EndTurnClear;
+        gameEvents.onEndTurn+= EndTurnClear;
     }
     
-    public void UnitSelection(bool isUnitSelected, GameObject selectedUnit)
+    public void UnitSelection(GameObject selectedUnit)
     {
-        if (isUnitSelected == false)
-        {
-            thisUnitData = null;
-            return;
-            
-        }
         thisUnitData = selectedUnit.GetComponent<Pawn>();
+    }
+
+    public void UnitDeselection(GameObject deselectedUnit)
+    {
+        thisUnitData = null;
     }
 
     public void AttackCalculation(Guid givenAttackerID, List<GameObject> hittedTargets)

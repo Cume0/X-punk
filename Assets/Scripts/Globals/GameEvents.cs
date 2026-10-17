@@ -30,12 +30,21 @@ public class GameEvents : MonoBehaviour
         }
     }
 
-    public event Action<bool, GameObject> onUnitSelection;
-    public void UnitSelected(bool isUnitSelected, GameObject selectedUnit)
+    public event Action<GameObject> onUnitSelection;
+    public void UnitSelected(GameObject selectedUnit)
     {
         if (onUnitSelection != null)
         {
-            onUnitSelection(isUnitSelected, selectedUnit);
+            onUnitSelection(selectedUnit);
+        }
+    }
+
+    public event Action<GameObject> onUnitDeselection;
+    public void UnitDeselected(GameObject deselectedUnit)
+    {
+        if (onUnitDeselection != null)
+        {
+            onUnitDeselection(deselectedUnit);
         }
     }
 
@@ -97,12 +106,12 @@ public class GameEvents : MonoBehaviour
     }
 
     //Turn Events
-    public event Action onEndTurnButtonPressed;
+    public event Action onEndTurn;
     public void EndTurn()
     {
-        if (onEndTurnButtonPressed != null)
+        if (onEndTurn != null)
         {
-            onEndTurnButtonPressed();
+            onEndTurn();
         }
     }
 
@@ -116,23 +125,42 @@ public class GameEvents : MonoBehaviour
     }
 
     //Pathfinding Events
-    public event Action<Guid, Vector3, List<Vector3>> onShowPath;
-    public void ShowPath(Guid ID, Vector3 FuturePositionCords, List<Vector3> path)
+    public event Action<Guid, Vector3, List<Vector3>, Transform> onShowPath;
+    public void ShowPath(Guid ID, Vector3 FuturePositionCords, List<Vector3> path, Transform pawnTransform)
     {
         if (onShowPath != null)
         {
-            onShowPath(ID, FuturePositionCords, path);
+            onShowPath(ID, FuturePositionCords, path, pawnTransform);
+        }
+    }
+
+    public event Action<Guid> onFreezePath;
+    public void FreezePath(Guid ID)
+    {
+        if (onFreezePath != null)
+        {
+            onFreezePath(ID);
+        }
+    }
+
+    public event Action<Guid> onUnfreezePath;
+    public void UnfreezePath(Guid ID)
+    {
+        if (onUnfreezePath != null)
+        {
+            onUnfreezePath(ID);
         }
     }
 
     public event Action<Guid> onHidePath;
     public void HidePath(Guid ID)
     {
-        if (onHidePath != null)
+        if (onHidePath != null || ID != null)
         {
             onHidePath(ID);
+            return;
         }
-    }
 
-    
+        print("HidePath event is null or ID is null");
+    }
 }

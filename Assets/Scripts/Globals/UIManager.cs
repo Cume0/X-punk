@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
@@ -25,21 +24,24 @@ public class UIManager : MonoBehaviour
     GameObject thisUnit;
     Pawn thisUnitData;
 
-    bool isThisUnitSelected = false;
-
     Dictionary<Guid, PathLineVisual> pathLineVisuals = new Dictionary<Guid, PathLineVisual>();
+    Dictionary<Guid, PathLineVisual> WorldSpaceCanvas = new Dictionary<Guid, PathLineVisual>();
     public void Initialize()
     {
         gameEvents = GameManager.gameEvents;
 
-        gameEvents.onUnitSelection += UnitSelected;  
-        gameEvents.onEndTurnButtonPressed += EndTurnClear;          
+        gameEvents.onUnitSelection += UnitSelected;
+        gameEvents.onUnitDeselection += UnitDeselected;
+        gameEvents.onEndTurn += EndTurnClear;          
 
         gameEvents.onShowTacticUI += ShowTacticUI;
         gameEvents.onHideTacticUI += HideTacticUI;
 
         gameEvents.onShowPath += ShowPath;
         gameEvents.onHidePath += HidePath;
+
+        gameEvents.onFreezePath += FreezePath;
+        gameEvents.onUnfreezePath += UnfreezePath;
 
         GameObject.Find("EndTurnButton").GetComponent<EndTurnButton>().Initialize();
 
@@ -66,21 +68,24 @@ public class UIManager : MonoBehaviour
         firstPersonCameraController.Initialize();
     }
 
-    public void UnitSelected(bool isUnitSelected, GameObject selectedUnit)
+    public void UnitSelected(GameObject selectedUnit)
     {
         thisUnit = selectedUnit;
-        thisUnitData = selectedUnit.GetComponent<Pawn>();
-        isThisUnitSelected = isUnitSelected;
-        thisUnitData.selectedUnitSelectionSign.SetActive(isUnitSelected);
 
-        if (isUnitSelected)
-        {
-            ShowTacticUI();
-        }
-        else
-        {
-            HideTacticUI();
-        }
+        thisUnitData = selectedUnit.GetComponent<Pawn>();
+        thisUnitData.selectedUnitSelectionSign.SetActive(true);
+
+        ShowTacticUI();
+    }
+
+    public void UnitDeselected(GameObject deselectedUnit)
+    {
+        HideTacticUI();
+
+        thisUnitData.selectedUnitSelectionSign.SetActive(false);
+        thisUnitData = null;
+
+        thisUnit = null;
     }
 
     public void EnterShootingUI()
@@ -117,11 +122,12 @@ public class UIManager : MonoBehaviour
         MapCursor.SetActive(true);
     }
 
-    private void ShowPath(Guid guid, Vector3 FuturePositionCords, List<Vector3> path)
+    private void ShowPath(Guid guid, Vector3 FuturePositionCords, List<Vector3> path, Transform pawnTransform)
     {
         if (pathLineVisuals.TryGetValue(guid, out PathLineVisual pathLine))
         {
-            pathLine.ShowPath(FuturePositionCords, path);
+            MapCursor.SetActive(false);
+            pathLine.ShowPath(pawnTransform);
         }
     }
     
@@ -129,7 +135,24 @@ public class UIManager : MonoBehaviour
     {
         if (pathLineVisuals.TryGetValue(guid, out PathLineVisual pathLine))
         {
+            MapCursor.SetActive(true);
             pathLine.HidePath();
+        }
+    }
+
+    public void FreezePath(Guid guid)
+    {
+        if (pathLineVisuals.TryGetValue(guid, out PathLineVisual pathLine))
+        {
+            pathLine.FreezePath();
+        }
+    }
+
+    public void UnfreezePath(Guid guid)
+    {
+        if (pathLineVisuals.TryGetValue(guid, out PathLineVisual pathLine))
+        {
+            pathLine.UnfreezePath();
         }
     }
 
@@ -153,11 +176,11 @@ public class UIManager : MonoBehaviour
     public void EndTurnClear()
     {
         HideTacticUI();
-        if (thisUnitData != null)
-        {
-            HidePath(thisUnitData.id);
-            thisUnitData.selectedUnitSelectionSign.SetActive(false);
-        }
+        if (thisUnitData == null) return;
+
+        HidePath(thisUnitData.id);
+        thisUnitData.selectedUnitSelectionSign.SetActive(false);
+        print(thisUnitData.selectedUnitSelectionSign + " is now " + thisUnitData.selectedUnitSelectionSign.activeSelf);
     }
     public void Exit()
     {

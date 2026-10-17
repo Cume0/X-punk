@@ -64,7 +64,9 @@
     },
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
-        "*.sln": "*.csproj"
+        "*.sln": "*.csproj",
+        "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "X-punk.slnx"
+    "dotnet.defaultSolution": "X-punk.slnx",
+    "dotnet.enableWorkspaceBasedDevelopment": false
 }

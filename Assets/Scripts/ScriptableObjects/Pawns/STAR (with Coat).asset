@@ -12,14 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e016869e57d28b94b978dbf82053baea, type: 3}
   m_Name: STAR (with Coat)
   m_EditorClassIdentifier: Assembly-CSharp::PawnInfo
-  pawnName: 
+  basePawnName: STAR
   team: 0
-  moveSpeed: 6
-  maxMovePoints: 8
-  maxActionPoints: 2
-  maxHP: 100
-  SightDistance: 0
-  accuracy: 0
-  attackDamage: 25
-  defence: 0
-  evasion: 0
+  baseMoveSpeed: 30
+  baseMovePoints: 20
+  baseActionPoints: 3
+  baseMaxHealth: 100
+  baseCurrentHealth: 100
+  baseAccuracy: 80
+  baseDefence: 1
+  baseEvasion: 20

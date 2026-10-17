@@ -1,5 +1,6 @@
 public interface IDamageable
 {
-    public int HP { get; set; }
+    public int MaxHealth { get; set; }
+    public int CurrentHealth { get; set; }
     void TakeDamage(int damage);
 }

@@ -17,7 +17,7 @@ public struct InitiativeData
         this.unit = unit;
     }
 }
-
+//TO DO: Add check for simutaneous initiative values, and add a tie-breaker system (maybe based on unit speed or something)
 public class TurnManager : MonoBehaviour
 {
     public int currentTurn = 0;
@@ -32,7 +32,7 @@ public class TurnManager : MonoBehaviour
         gameEvents = GameManager.gameEvents;
         unitManager = GameManager.unitManager;
 
-        gameEvents.onEndTurnButtonPressed += turnShift;
+        gameEvents.onEndTurn += turnShift;
 
         initiativeOrder = new List<InitiativeData>();
         foreach (GameObject unit in unitManager.pawns.Values)

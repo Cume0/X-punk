@@ -1,8 +1,12 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class IsometricCameraController : MonoBehaviour
 {
+    GameEvents gameEvents;
+    UnitManager unitManager;
+
     private Vector3 trueMoveDirection;
     [SerializeField] private float _moveSpeed;
     [SerializeField] private float _verticalOffset;
@@ -17,6 +21,11 @@ public class IsometricCameraController : MonoBehaviour
 
     public void Initialize()
     {
+        gameEvents = GameManager.gameEvents;
+        unitManager = GameManager.unitManager;
+
+        gameEvents.onPawnsTurn += OnPawnsTurn;
+
         savedRotation = transform.rotation;
         isInitialized = true;
     }
@@ -24,6 +33,18 @@ public class IsometricCameraController : MonoBehaviour
     void Update()
     {
         HandleInput();
+    }
+
+    private void OnPawnsTurn(Guid id)
+    {
+        if (unitManager.getPawnByID(id, out GameObject pawn))
+        {
+            transform.parent.position = pawn.transform.position + new Vector3(0, 6, -3);
+        }
+        else
+        {
+            print("Pawn with ID " + id + " not found in UnitManager. (by IsometricCameraController)");
+        }
     }
 
     private void HandleInput()

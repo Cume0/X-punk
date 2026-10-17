@@ -30,13 +30,13 @@ public class CoverState : EnemyState
             float distanceToCover = Vector3.Distance(stateMachine.transform.position, stateMachine.closestCover.position);
             bool pathFound;
 
-            if (distanceToCover < stateMachine.enemyPawn.movePoints)
+            if (distanceToCover < stateMachine.enemyPawn.CurrentMovePoints)
             {
                 pathFound = stateMachine.enemyPawn.navMeshAgent.CalculatePath(stateMachine.closestCover.position, stateMachine.enemyPawn.path);
             }
             else
             {
-                pathFound = stateMachine.enemyPawn.navMeshAgent.CalculatePath(stateMachine.closestCover.position / stateMachine.enemyPawn.movePoints, stateMachine.enemyPawn.path);
+                pathFound = stateMachine.enemyPawn.navMeshAgent.CalculatePath(stateMachine.closestCover.position / stateMachine.enemyPawn.CurrentMovePoints, stateMachine.enemyPawn.path);
             }
 
             if (pathFound && stateMachine.enemyPawn.path.corners.Length > 0)

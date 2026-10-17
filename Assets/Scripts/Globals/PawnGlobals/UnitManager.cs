@@ -40,4 +40,9 @@ public class UnitManager : MonoBehaviour
         turnManager.initiativeOrder.Remove(turnManager.initiativeOrder.FirstOrDefault(x => x.id == victimID));
         pawns.Remove(victimID);
     }
+
+    public bool getPawnByID(Guid pawnID, out GameObject pawn)
+    {
+        return pawns.TryGetValue(pawnID, out pawn);
+    }
 }

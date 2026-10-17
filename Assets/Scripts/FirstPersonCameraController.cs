@@ -44,9 +44,11 @@ public class FirstPersonCameraController : MonoBehaviour
     private void OnEnable()
     {
         transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.identity; 
+
         LookAction.action?.Enable();
         Cursor.lockState = CursorLockMode.Locked;
-        if (playerBody.TryGetComponent(out NavMeshAgent agent))
+        if (playerBody != null && playerBody.TryGetComponent(out NavMeshAgent agent))
         {
             agent.updateRotation = false;
         }
@@ -56,7 +58,7 @@ public class FirstPersonCameraController : MonoBehaviour
     {
         LookAction.action?.Disable();
         Cursor.lockState = CursorLockMode.None;
-        if (playerBody.TryGetComponent(out NavMeshAgent agent))
+        if (playerBody != null && playerBody.TryGetComponent(out NavMeshAgent agent))
         {
             agent.updateRotation = true;
         }

@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e016869e57d28b94b978dbf82053baea, type: 3}
   m_Name: EnemyInfo
   m_EditorClassIdentifier: Assembly-CSharp::PawnInfo
-  pawnName: 
+  basePawnName: 
   team: 1
-  moveSpeed: 6
-  maxMovePoints: 7
-  maxActionPoints: 2
-  maxHP: 40
-  accuracy: 0
-  defence: 0
-  evasion: 0
+  baseMoveSpeed: 30
+  baseMovePoints: 20
+  baseActionPoints: 3
+  baseMaxHealth: 50
+  baseCurrentHealth: 50
+  baseAccuracy: 50
+  baseDefence: 0
+  baseEvasion: 10

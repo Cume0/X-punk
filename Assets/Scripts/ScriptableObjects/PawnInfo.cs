@@ -4,17 +4,18 @@ using UnityEngine;
 public class PawnInfo : ScriptableObject
 {
     [Header ("Identification")]
-    public string pawnName;    
+    public string basePawnName;    
     public TeamsEnum team;
 
     [Header ("Movement")]
-    public int moveSpeed;
-    public int maxMovePoints;
+    public int baseMoveSpeed;
+    public int baseMovePoints;
 
     [Header ("Combat")]
-    public int maxActionPoints;
-    public int maxHP;
-    public int accuracy;  
-    public int defence; 
-    public int evasion;
+    public int baseActionPoints;
+    public int baseMaxHealth;
+    public int baseCurrentHealth;
+    public int baseAccuracy;  
+    public int baseDefence; 
+    public int baseEvasion;
 }

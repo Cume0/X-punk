@@ -1,5 +1,7 @@
 ﻿<Solution>
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Cumeo.Utils.csproj" />
   <Project Path="OccaSoftware.Crosshairs.Editor.csproj" />
+  <Project Path="Cumeo.Utils.Editor.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
 </Solution>

@@ -3,37 +3,52 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.AI;
-using Unity.VisualScripting;
+using Cumeo.Utils;
 
 public class Pawn : MonoBehaviour, IDamageable
 {
     public Guid id;
+    public NavMeshPath path;
+
+    public StatesEnum state;
+
+    [Header("BaseData")]
     public PawnInfo pawnInfo;
     public WeaponInfo weaponInfo;
     
-    [HideInInspector] public NavMeshPath path;
+    [Header("Navigation")]
+    [ReadOnly] public float previewMovePointsSpent;
+    [ReadOnly] public float previewMovePointsRemaining;
     [HideInInspector] public List<Vector3> pathCorners;
     [HideInInspector] public Vector3 finalPathPoint;
-    public StatesEnum state;
-    int HP;
-    public float movePoints;
-    [HideInInspector] public float movePointsSpent;
-    [HideInInspector] public float movePointsRemaining;
-    [HideInInspector] public float previewMovePointsSpent;
-    [HideInInspector] public float previewMovePointsRemaining;
-    [HideInInspector] public int maxActionPoints;
-    [HideInInspector] public int actionPoints;
-    [HideInInspector] public int initiative;
 
+    [Header("Stats")]
+    public int MaxHealth;
+    public int CurrentHealth;
+
+    public float MaxMovePoints;
+    public float CurrentMovePoints;
+
+    public int maxActionPoints;
+    public int actionPoints;
+
+    public int initiative;
+
+    [Header("Components")]
+    public EnemyAI AI;
+
+    [Header("If you see this, something is wrong")]
     GameEvents gameEvents;
-    EnemyAI AI;
     SphereCollider DetectionRadius;
     [HideInInspector] public NavMeshAgent navMeshAgent;
-    [HideInInspector] NavMeshObstacle navMeshObstacle;
-    [HideInInspector] AnimatorController animatorController;
+    NavMeshObstacle navMeshObstacle;
+    EventCameraAssigner eventCameraAssigner;
+    AnimatorController animatorController;
     [HideInInspector] public GameObject selectedUnitSelectionSign;
+    [HideInInspector] public WorldSpaceUIBar HealthBar;
 
-    int IDamageable.HP { get => HP; set => HP = value; }
+    int IDamageable.CurrentHealth { get => CurrentHealth; set => CurrentHealth = value; }
+    int IDamageable.MaxHealth { get => MaxHealth; set => MaxHealth = value; }
 
     public void Initialize()
     {    
@@ -45,19 +60,26 @@ public class Pawn : MonoBehaviour, IDamageable
         selectedUnitSelectionSign.SetActive(false);
 
         gameEvents.onPawnsTurn += BeginTurn;
-
+    
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshObstacle = GetComponent<NavMeshObstacle>();
         animatorController = GetComponentInChildren<AnimatorController>();
+        eventCameraAssigner = GetComponentInChildren<EventCameraAssigner>();
+        HealthBar = GetComponentInChildren<WorldSpaceUIBar>();
 
         animatorController.Initialize(navMeshAgent);
+        eventCameraAssigner.Initialize();
+        HealthBar.Initialize(pawnInfo.baseMaxHealth, pawnInfo.baseCurrentHealth);
+
         path = new NavMeshPath();
 
-        state = StatesEnum.InActive;
+        state = StatesEnum.Inactive;
 
-        HP = pawnInfo.maxHP;
-        movePoints = pawnInfo.maxMovePoints;
-        maxActionPoints = pawnInfo.maxActionPoints;
+        MaxHealth = pawnInfo.baseMaxHealth;
+        CurrentHealth = pawnInfo.baseCurrentHealth;
+        MaxMovePoints = pawnInfo.baseMovePoints;
+        CurrentMovePoints = MaxMovePoints;
+        maxActionPoints = pawnInfo.baseActionPoints;
         actionPoints = maxActionPoints;
         initiative = getInitiative();
 
@@ -87,24 +109,19 @@ public class Pawn : MonoBehaviour, IDamageable
 
     public void BeginTurn(Guid givenID)
     {
-        if (givenID != id)
-        {
-            return;
-        }
-        
+        if (givenID != id) return;
+
         StartCoroutine(enableNavMeshAgent());
 
         state = StatesEnum.Active;
-        movePoints = pawnInfo.maxMovePoints;
-        movePointsRemaining = movePoints;
-        movePointsSpent = 0f;
-        previewMovePointsRemaining = movePoints;
+        CurrentMovePoints = MaxMovePoints;
+        previewMovePointsRemaining = CurrentMovePoints;
         previewMovePointsSpent = 0f;
         actionPoints = maxActionPoints;
 
         if (AI != null)
         {
-            print("Lets get some");
+            print("AI turn begin");
             StartCoroutine(BeginAITurn());
         }
     }
@@ -142,14 +159,17 @@ public class Pawn : MonoBehaviour, IDamageable
 
         while ((transform.position - finalPathPoint).magnitude > 0.1f)
         {
+            if (navMeshAgent.hasPath)
+            {
+                pathCorners = new List<Vector3>(navMeshAgent.path.corners);
+            }
+
             yield return null;
         }
 
         navMeshAgent.ResetPath();
-        movePointsSpent += distanceTraveled;
-        movePoints = Mathf.Max(0f, movePoints - distanceTraveled);
-        movePointsRemaining = movePoints;
-        previewMovePointsRemaining = movePoints;
+        CurrentMovePoints = Mathf.Max(0f, CurrentMovePoints - distanceTraveled);
+        previewMovePointsRemaining = CurrentMovePoints;
         previewMovePointsSpent = 0f;
 
         state = StatesEnum.Active;
@@ -160,9 +180,10 @@ public class Pawn : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage)
     {
-        print("Ouch! I only have" + HP );
-        HP -= damage;
-        if (HP <= 0)
+        CurrentHealth -= damage;
+        HealthBar.ChangeValue(-damage);
+        
+        if (CurrentHealth <= 0)
         {
             gameEvents.Die(id);
             Destroy(gameObject);
@@ -173,15 +194,16 @@ public class Pawn : MonoBehaviour, IDamageable
 
     public IEnumerator EndTurn()
     {
-        print("Im done");
+        print("AI turn end");
         if (!navMeshAgent.enabled || !navMeshAgent.isOnNavMesh)
         {
             yield break;
         }
         navMeshAgent.ResetPath();
+
         navMeshAgent.enabled = false;
         yield return null;
         navMeshObstacle.enabled = true;
-        state = StatesEnum.InActive;
+        state = StatesEnum.Inactive;
     }
 }

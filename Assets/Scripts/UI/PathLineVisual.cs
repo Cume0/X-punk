@@ -1,60 +1,95 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class PathLineVisual : MonoBehaviour
 {
-    GameEvents gameEvents;
-    LineRenderer lineRenderer;
-    Transform futurePosition;
+    private LineRenderer lineRenderer;
+    private Transform futurePositionTransform;
+    private Pawn trackedPawn;
 
-    Guid assignedPawnGuid;
+    bool isPathFrozen = false;
+    private Vector3[] renderBuffer = new Vector3[0];
 
-    Vector3 FuturePositionCords;
-    List<Vector3> path;
     public void Initialize(Guid pawnGuid)
     {
-        gameEvents = GameManager.gameEvents;
-
-        assignedPawnGuid = pawnGuid;
         lineRenderer = GetComponentInChildren<LineRenderer>();
-        futurePosition = transform.GetChild(0).Find("FuturePosition");
+        futurePositionTransform = transform.GetChild(0).Find("FuturePosition");
         HidePath();
-
-        enabled = false;
     }
 
-    public void Update()
+    private void Update()
     {
         UpdatePathVisual();
     }
 
-    public void ShowPath(Vector3 GivenFuturePositionCords, List<Vector3> GivenPath)
+    public void ShowPath(Transform givenPawnTransform)
     {
-        FuturePositionCords = GivenFuturePositionCords;
-        path = GivenPath;
+        if (isPathFrozen) return;
         
+        if (trackedPawn == null || trackedPawn.transform != givenPawnTransform)
+        {
+            trackedPawn = givenPawnTransform.GetComponent<Pawn>();
+        }
+
+        transform.GetChild(0).gameObject.SetActive(true);
         enabled = true;
     }
 
-    public void UpdatePathVisual()
+    private void UpdatePathVisual()
     {
-        transform.GetChild(0).gameObject.SetActive(true);
-        
-        futurePosition.position = FuturePositionCords;
-        renderLine(path);
+        if (isPathFrozen) return;
+
+        // Если пешки нет или у неё пустой путь — просто обнуляем линию
+        if (trackedPawn == null || trackedPawn.pathCorners == null || trackedPawn.pathCorners.Count == 0)
+        {
+            lineRenderer.positionCount = 0;
+            HidePath();
+            return;
+        }
+
+        List<Vector3> currentCorners = trackedPawn.pathCorners;
+        int pointsCount = currentCorners.Count;
+
+        if (renderBuffer.Length != pointsCount)
+        {
+            renderBuffer = new Vector3[pointsCount];
+        }
+
+        currentCorners.CopyTo(renderBuffer);
+
+        renderBuffer[0] = trackedPawn.transform.position;
+
+        lineRenderer.positionCount = pointsCount;
+        lineRenderer.SetPositions(renderBuffer);
+
+        futurePositionTransform.position = renderBuffer[renderBuffer.Length - 1];
     }
 
     public void HidePath()
-    {
-        transform.GetChild(0).gameObject.SetActive(false);
+    {       
+        if (transform.GetChild(0).gameObject.activeSelf)
+        {
+            transform.GetChild(0).gameObject.SetActive(false);
+            lineRenderer.positionCount = 0;
+        }
+        trackedPawn = null;
+        isPathFrozen = false;
+        enabled = false;
     }
 
-    private void renderLine(List<Vector3> path)
+    public void FreezePath()
     {
-        futurePosition.position = path.Last();
-        lineRenderer.positionCount = path.Count;
-        lineRenderer.SetPositions(path.ToArray());
+        isPathFrozen = true;
+        enabled = false;
+    }
+
+    public void UnfreezePath()
+    {
+        if (trackedPawn != null)
+        {
+            isPathFrozen = false;
+            enabled = true;
+        }
     }
 }

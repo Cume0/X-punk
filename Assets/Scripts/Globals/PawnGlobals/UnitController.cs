@@ -29,7 +29,7 @@ public class UnitController : MonoBehaviour
         
         gameEvents = GameManager.gameEvents;
 
-        gameEvents.onEndTurnButtonPressed += EndTurnClear;
+        gameEvents.onEndTurn += EndTurnClear;
         gameEvents.onShootingModeActivated += ActivateShootingMode;
         gameEvents.onShootingModeDeactivated += DeactivateShootingMode;
     }
@@ -55,46 +55,83 @@ public class UnitController : MonoBehaviour
 
             UnitMover();
         }
+        else if (menuAction.action.WasPerformedThisFrame())
+        {
+            UnitCancler();
+        }
     }
 
     public void Selector()
     {
-        bool hasHit = Physics.Raycast(CameraRay, out hit); //shoot raycast
-        if (!hasHit)
-        {
-            return;
-        }
+        int maskExceptMarker = ~LayerMask.GetMask("PlannedPosition");
+
+        bool hasHit = Physics.Raycast(CameraRay, out hit, Mathf.Infinity, maskExceptMarker); //shoot raycast
+        if (!hasHit) return;
 
         if (hit.transform.TryGetComponent(out Pawn pawn))
         {
-            previousSelectedUnit = selectedUnit;
-            selectedUnit = hit.transform.gameObject;
-            selectedUnitData = hit.transform.GetComponent<Pawn>();
-
-            if (selectedUnitData.state == StatesEnum.Busy || selectedUnitData.state == StatesEnum.InActive ||selectedUnitData.pawnInfo.team == TeamsEnum.Enemy)
+            if (previousSelectedUnit == null)
             {
+                previousSelectedUnit = hit.transform.gameObject;
+            }
+
+            if (pawn.state == StatesEnum.Busy || pawn.state == StatesEnum.Inactive || pawn.pawnInfo.team == TeamsEnum.Enemy)
+            {
+                selectedUnit = previousSelectedUnit;
+                selectedUnitData = previousSelectedUnit.GetComponent<Pawn>();
+                print("Unit " + pawn.name + " is not selectable.");
                 return;
             }
-            if (selectedUnit.Equals(previousSelectedUnit) && isUnitSelected)
+
+            if (pawn.gameObject.Equals(previousSelectedUnit) && isUnitSelected)
             {
                 isUnitSelected = false;
-                gameEvents.UnitSelected(isUnitSelected, selectedUnit);
+                gameEvents.UnitDeselected(pawn.gameObject);
+                print("Deselected " + pawn.name);
                 return;
             }
+
+            selectedUnit = hit.transform.gameObject;
+            selectedUnitData = pawn;
+            previousSelectedUnit = selectedUnit;
 
             print(selectedUnitData.name + ": Orders?");
             isUnitSelected = true;
-            gameEvents.UnitSelected(isUnitSelected, selectedUnit);
+            gameEvents.UnitSelected(selectedUnit);
         }
     }
 
     public void UnitMover()
     {
-        if (Physics.Raycast(CameraRay, out moveHit, Mathf.Infinity, LayerMask.GetMask("PlannedPosition")))
+        if (selectedUnitData.state == StatesEnum.Active)
         {
-            StartCoroutine(selectedUnitData.MoveAlongPath());
-            return;   
+            selectedUnitData.state = StatesEnum.Planning;
+            gameEvents.FreezePath(selectedUnitData.id);
+            return;
         }
+
+        if (!Physics.Raycast(CameraRay, out moveHit, Mathf.Infinity, LayerMask.GetMask("PlannedPosition"))) return;
+
+        
+        gameEvents.UnfreezePath(selectedUnitData.id);
+        StartCoroutine(selectedUnitData.MoveAlongPath());
+    }
+
+    public void UnitCancler()
+    {
+        if (!isUnitSelected || selectedUnitData == null) return;
+
+        
+        if (selectedUnitData.state == StatesEnum.Planning)
+        {
+            selectedUnitData.state = StatesEnum.Active;
+            gameEvents.UnfreezePath(selectedUnitData.id);
+            return;
+        }
+
+        isUnitSelected = false;
+        gameEvents.UnitDeselected(selectedUnit);
+        print("Deselected " + selectedUnitData.name);
     }
 
     private void ActivateShootingMode()
@@ -110,7 +147,7 @@ public class UnitController : MonoBehaviour
     private void EndTurnClear()
     {
         isUnitSelected = false;
-        gameEvents.UnitSelected(isUnitSelected, selectedUnit);
+        gameEvents.UnitDeselected(selectedUnit);
         selectedUnit = null;
         selectedUnitData = null;       
     }

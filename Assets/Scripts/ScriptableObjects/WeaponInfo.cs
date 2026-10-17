@@ -1,15 +1,21 @@
 using System;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "WeaponInfo", menuName = "Scriptable Objects/WeaponInfo")]
+[CreateAssetMenu(fileName = "NewWeaponInfo", menuName = "Scriptable Objects/WeaponInfo")]
 public class WeaponInfo : ScriptableObject
 {
-    [Header("Identification")]
+    [Header("View")]
     public string weaponName;
-    public Guid assignedPawnID;
+    public GameObject weaponPrefab;
+    public AudioClip shootSoundl;
 
-    [Header("Combat")]
+    [Header("Stats")]
     public int attackDamage;
-    public int accuracy;
-    public int attackSpeed;
+    public int shotsPerAction;
+
+    public int maxDispersionAngle;
+    public int minDispersionAngle;
+
+    public int attackRange;
+    public int armorPenetration;
 }

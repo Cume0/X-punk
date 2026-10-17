@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,7 +9,6 @@ public class NavigationManager : MonoBehaviour
 {
     GameEvents gameEvents;
 
-
     Pawn selectedUnitData;
     NavMeshPath calculatedPath;
 
@@ -16,18 +16,16 @@ public class NavigationManager : MonoBehaviour
     RaycastHit hit; //raycast target container for default raycast
     RaycastHit pathHit; //raycast target container for path raycast
 
-    List<Vector3> pathCorners;
-
     public void Initialize()
     {
         gameEvents = GameManager.gameEvents;
 
         gameEvents.onUnitSelection += ActivateNavigationAfterSelection;
+        gameEvents.onUnitDeselection += DeactivateNavigationAfterDeselection;
+        gameEvents.onFreezePath += FreezePath;
 
         gameEvents.onShootingModeActivated += DeactivateNavigationAfterShooting;
         gameEvents.onShootingModeDeactivated += ActivateNavigationAfterShooting;
-
-        
 
         calculatedPath = new NavMeshPath();
 
@@ -39,25 +37,26 @@ public class NavigationManager : MonoBehaviour
         UpdatePath();
     }
 
-    public void ActivateNavigationAfterSelection(bool isUnitSelected, GameObject selectedUnit)
+    public void ActivateNavigationAfterSelection(GameObject selectedUnit)
     {
-        if (isUnitSelected == false)
-        {
-            enabled = false;
-
-            GameManager.gameEvents.HidePath(selectedUnitData.id);
-            selectedUnitData = null;
-            return;
-        }
-
         selectedUnitData = selectedUnit.GetComponent<Pawn>();
         enabled = true;
+    }
+
+    public void DeactivateNavigationAfterDeselection(GameObject deselectedUnit)
+    {
+        enabled = false;
+            
+        if (selectedUnitData == null) return;
+
+        print("Hiding path for " + selectedUnitData.id);
+        GameManager.gameEvents.HidePath(selectedUnitData.id);
+        selectedUnitData = null;
     }
 
     public void DeactivateNavigationAfterShooting()
     {
         enabled = false;
-        gameEvents.HidePath(selectedUnitData.id);
     }
 
     public void ActivateNavigationAfterShooting()
@@ -67,43 +66,64 @@ public class NavigationManager : MonoBehaviour
 
     public void UpdatePath()
     {
-        if (selectedUnitData == null)
-        {
-            return;
-        }
+        if (selectedUnitData == null || selectedUnitData.path == null) return;
 
         CameraRay = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         bool hasHit = Physics.Raycast(CameraRay, out hit);
         if (!hasHit 
-        || !Physics.Raycast(CameraRay, out pathHit, Mathf.Infinity, LayerMask.GetMask("Terrain"))
+        || !Physics.Raycast(CameraRay, out pathHit, Mathf.Infinity, LayerMask.GetMask("Floor"))
         || selectedUnitData.state == StatesEnum.Busy 
-        || selectedUnitData.state == StatesEnum.InActive
-        || selectedUnitData.movePoints <= 0.1f)
+        || selectedUnitData.state == StatesEnum.Inactive
+        || selectedUnitData.CurrentMovePoints <= 0.1f)
+        return;
+
+
+        // Edge case handling: If the raycast hit point is not on the NavMesh, find the closest point on the NavMesh within a small radius. If no point is found, try a larger radius. If still no point is found, exit the method.
+        float instantCheckRadius = 0.2f;
+        if (!NavMesh.SamplePosition(pathHit.point, out NavMeshHit closeHit, instantCheckRadius, NavMesh.AllAreas))
         {
-            return;
+            float maxSearchRadius = 5.0f; 
+            if (NavMesh.SamplePosition(pathHit.point, out NavMeshHit edgeHit, maxSearchRadius, NavMesh.AllAreas))
+            {
+                pathHit.point = edgeHit.position;
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            pathHit.point = closeHit.position;
         }
 
-        selectedUnitData.finalPathPoint = GetReachablePath();
+        selectedUnitData.pathCorners = GetReachablePath();
         selectedUnitData.path = calculatedPath;
-        selectedUnitData.pathCorners = pathCorners;
-        gameEvents.ShowPath(selectedUnitData.id, hit.point, selectedUnitData.pathCorners);
+        selectedUnitData.finalPathPoint = selectedUnitData.pathCorners.Last();
+        gameEvents.ShowPath(selectedUnitData.id, pathHit.point, selectedUnitData.pathCorners, selectedUnitData.transform);
     }
 
-    public Vector3 GetReachablePath()
+    public void FreezePath(Guid ID)
+    {
+        if (selectedUnitData == null || selectedUnitData.id != ID) return;
+
+        enabled = false;
+    }
+
+    public List<Vector3> GetReachablePath()
     {   
         Physics.Raycast(CameraRay, out hit);
 
-        float availableMovePoints = selectedUnitData.movePoints;
+        float availableMovePoints = selectedUnitData.CurrentMovePoints;
         float remainingMovePoints = availableMovePoints;
         float spentMovePoints = 0f;
         
-        if (!NavMesh.CalculatePath(selectedUnitData.transform.position, hit.point, 1, calculatedPath))
+        if (!NavMesh.CalculatePath(selectedUnitData.transform.position, pathHit.point, 1, calculatedPath))
         {
-            print("invalid path to " + hit.point);
+            print("invalid path to " + pathHit.point);
             selectedUnitData.previewMovePointsRemaining = availableMovePoints;
             selectedUnitData.previewMovePointsSpent = 0f;
-            pathCorners = new List<Vector3>();
-            return new Vector3();
+            return new List<Vector3>();
         }
         
         Vector3[] corners = calculatedPath.corners;
@@ -113,8 +133,7 @@ public class NavigationManager : MonoBehaviour
             print("path is empty");
             selectedUnitData.previewMovePointsRemaining = availableMovePoints;
             selectedUnitData.previewMovePointsSpent = 0f;
-            pathCorners = new List<Vector3>();
-            return new Vector3();
+            return new List<Vector3>();
         }
         
         List<Vector3> path = new List<Vector3>();
@@ -132,10 +151,8 @@ public class NavigationManager : MonoBehaviour
                 remainingMovePoints = 0f;
                 selectedUnitData.previewMovePointsRemaining = remainingMovePoints;
                 selectedUnitData.previewMovePointsSpent = spentMovePoints;
-                print("Too far, preview remaining movePoints: " + remainingMovePoints);
-                pathCorners = path;
                 
-                return path.Last();
+                return path;
             }
 
             path.Add(corners[i + 1]);
@@ -146,15 +163,12 @@ public class NavigationManager : MonoBehaviour
             {
                 selectedUnitData.previewMovePointsRemaining = remainingMovePoints;
                 selectedUnitData.previewMovePointsSpent = spentMovePoints;
-                pathCorners = path;
-                return path.Last();
+                return path;
             }
         }
 
         selectedUnitData.previewMovePointsRemaining = remainingMovePoints;
         selectedUnitData.previewMovePointsSpent = spentMovePoints;
-        print("Going to " + hit.point + ", preview remaining movePoints: " + remainingMovePoints);
-        pathCorners = path;
-        return path.Last();
+        return path;
     }
 }

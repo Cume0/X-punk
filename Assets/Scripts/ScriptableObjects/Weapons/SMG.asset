@@ -16,3 +16,4 @@ MonoBehaviour:
   attackDamage: 10
   accuracy: 3
   attackSpeed: 3
+  attackRange: 30
